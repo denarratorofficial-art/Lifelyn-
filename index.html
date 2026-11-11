@@ -1,5 +1,14 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#FAF8F4" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#101716" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Lifelyn">
 <title>Lifelyn</title>
-<meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -29,6 +38,10 @@
  --ok:#5BD08A;--ok-soft:#12301F;--warn:#F2B84B;--warn-soft:#37290A;--err:#FF8A80;--err-soft:#3D1816;
  --focus:#8CB8FF;--shadow:0 8px 30px rgba(0,0,0,.5);color-scheme:dark}
 *{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%;-webkit-tap-highlight-color:transparent}
+button,select,input,.chip{touch-action:manipulation}
+img,svg,video{max-width:100%}
+body{overflow-x:hidden;overscroll-behavior-y:none}
 html,body{height:100%}
 body{background:var(--bg);color:var(--t1);font-family:var(--f-body);font-size:16px;line-height:1.5;-webkit-font-smoothing:antialiased}
 button,input,select,textarea{font:inherit;color:inherit}
@@ -58,6 +71,7 @@ h3{font-size:1rem;font-weight:600}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .badge{color:#101716}}
 .sp{flex:1}
 .main{min-width:0;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.wrap>*{min-width:0}
 .wrap{max-width:1100px;margin:0 auto;padding-block:20px 48px;display:flex;flex-direction:column;gap:20px}
 .top{display:flex;align-items:center;gap:10px;justify-content:space-between}
 .top .t{min-width:0}
@@ -72,13 +86,22 @@ h3{font-size:1rem;font-weight:600}
  .badge{position:absolute;margin:0;transform:translate(14px,-14px)}
  .nav{position:relative}
 }
-@media (max-width:599px){
+@media (max-width:599px),(max-height:500px) and (max-width:1023px){
  .app{display:block}
  .side{display:none}
  .wrap{padding-block:12px 110px}
  .bottom{display:grid;grid-template-columns:repeat(5,1fr);position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--surface);border-top:1px solid var(--line);padding:6px max(8px,env(safe-area-inset-right,0px)) calc(6px + env(safe-area-inset-bottom,0px)) max(8px,env(safe-area-inset-left,0px))}
  .bottom .nav{flex-direction:column;gap:2px;justify-content:center;font-size:.72rem;min-height:52px;padding:4px 0;text-align:center;position:relative}
  h1{font-size:1.5rem;line-height:2rem}
+ .sheet{border-radius:20px 20px 0 0}
+}
+@media (max-height:500px) and (orientation:landscape){
+ .bottom .nav{min-height:44px;flex-direction:row;justify-content:center;gap:6px;font-size:.75rem}
+ .wrap{padding-block:8px 72px}.scrim .sheet{max-height:96dvh}
+}
+@media (max-width:359px){
+ .btn{padding:0 12px}.card{padding:12px}.item{padding:8px 10px;gap:8px}.hello{font-size:1.5rem;line-height:2rem}.chip{padding:0 10px}
+ .bottom .nav{font-size:.66rem}
 }
 
 .card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px}
@@ -149,7 +172,7 @@ h3{font-size:1rem;font-weight:600}
 .ask input::placeholder{color:var(--t2)}
 .ask:focus-within{outline:2px solid var(--focus);outline-offset:2px}
 
-.tabs{display:flex;gap:4px;overflow-x:auto;border-bottom:1px solid var(--line)}
+.tabs{display:flex;gap:4px;overflow-x:auto;max-width:100%;-webkit-overflow-scrolling:touch;border-bottom:1px solid var(--line)}
 .tab{background:none;border:0;border-bottom:3px solid transparent;padding:10px 14px;min-height:44px;color:var(--t2);font-weight:500;white-space:nowrap}
 .tab[aria-selected="true"]{color:var(--primary);border-bottom-color:var(--primary);font-weight:600}
 
@@ -200,8 +223,8 @@ h3{font-size:1rem;font-weight:600}
 .stat>div{background:var(--sunken);border-radius:12px;padding:12px}
 .stat .v{font-size:1.25rem;font-weight:650;font-variant-numeric:tabular-nums}
 
-.scrim{position:fixed;inset:0;background:rgba(10,16,15,.5);z-index:50;display:flex;align-items:flex-end;justify-content:center}
-.sheet{background:var(--surface);width:100%;max-width:520px;max-height:92%;overflow:auto;border-radius:20px 20px 0 0;padding:18px max(18px,env(safe-area-inset-left,0px)) calc(18px + env(safe-area-inset-bottom,0px));box-shadow:var(--shadow)}
+.scrim{position:fixed;inset:0;padding-top:env(safe-area-inset-top,0px);background:rgba(10,16,15,.5);z-index:50;display:flex;align-items:flex-end;justify-content:center}
+.sheet{background:var(--surface);width:100%;max-width:520px;max-height:92%;max-height:92dvh;overflow:auto;border-radius:20px 20px 0 0;padding:18px max(18px,env(safe-area-inset-left,0px)) calc(18px + env(safe-area-inset-bottom,0px));box-shadow:var(--shadow)}
 .sheet .hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
 @media (min-width:600px){.scrim{align-items:center}.sheet{border-radius:18px;padding-bottom:18px}}
 .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(88px + env(safe-area-inset-bottom,0px));z-index:60;background:var(--t1);color:var(--bg);padding:10px 14px;border-radius:12px;display:flex;gap:14px;align-items:center;box-shadow:var(--shadow);max-width:calc(100% - 32px)}
@@ -215,7 +238,12 @@ h3{font-size:1rem;font-weight:600}
 .sw button[aria-checked="true"]::after{transform:translateX(20px);background:var(--on-primary)}
 .note{font-size:.8125rem;color:var(--t2);background:var(--sunken);border-radius:10px;padding:8px 12px}
 </style>
+<style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{margin:0;font-size:16px}[hidden]{display:none!important}</style>
+</head>
+<body>
 <div id="root"></div>
+<noscript>Lifelyn needs JavaScript to run.</noscript>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/htm@3.1.1/dist/htm.umd.js"></script>
@@ -638,4 +666,7 @@ function App(){
   <nav className="bottom" aria-label="Main">${tabs.map(id=>nb(NAV.find(n=>n[0]===id)))}</nav>
   ${sh}${toast?html`<div className="toast" role="status"><span>${toast.msg}</span>${toast.undo?html`<button onClick=${()=>{toast.undo();setToast(null)}}>Undo</button>`:null}</div>`:null}</div>`}
 ReactDOM.createRoot(document.getElementById('root')).render(html`<${App}/>`);
+
 </script>
+</body>
+</html>
