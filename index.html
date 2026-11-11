@@ -1,0 +1,641 @@
+<title>Lifelyn</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* Layout: grouped sidebar (desktop), icon rail (tablet), five-tab bottom bar (phone). Warm paper surfaces, one deep teal, terracotta used once per screen. */
+:root{
+ --bg:#FAF8F4;--surface:#FFFFFF;--sunken:#F3EFE8;--line:#E5DFD4;--line-strong:#8A918C;
+ --t1:#1C2526;--t2:#4A5758;--t3:#5E6B6B;
+ --primary:#0E6F66;--primary-h:#0B5A53;--primary-soft:#DDF0EC;--on-primary:#FFFFFF;
+ --accent:#A93C22;--accent-soft:#FBE6DD;
+ --ok:#1B7A43;--ok-soft:#E0F2E7;--warn:#8A5100;--warn-soft:#FFF1D6;--err:#C2352B;--err-soft:#FCE4E1;
+ --focus:#1D5FD1;--shadow:0 8px 30px rgba(28,37,38,.14);
+ --f-body:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;--f-display:'Fraunces',Georgia,serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+ --bg:#101716;--surface:#172120;--sunken:#0B1110;--line:#2B3A39;--line-strong:#6E807D;
+ --t1:#EAF1EF;--t2:#B4C2BF;--t3:#8FA19E;
+ --primary:#4FC3B4;--primary-h:#6FD3C6;--primary-soft:#12312E;--on-primary:#06201D;
+ --accent:#F08A6B;--accent-soft:#3A2119;
+ --ok:#5BD08A;--ok-soft:#12301F;--warn:#F2B84B;--warn-soft:#37290A;--err:#FF8A80;--err-soft:#3D1816;
+ --focus:#8CB8FF;--shadow:0 8px 30px rgba(0,0,0,.5);color-scheme:dark}}
+:root[data-theme="dark"]{
+ --bg:#101716;--surface:#172120;--sunken:#0B1110;--line:#2B3A39;--line-strong:#6E807D;
+ --t1:#EAF1EF;--t2:#B4C2BF;--t3:#8FA19E;
+ --primary:#4FC3B4;--primary-h:#6FD3C6;--primary-soft:#12312E;--on-primary:#06201D;
+ --accent:#F08A6B;--accent-soft:#3A2119;
+ --ok:#5BD08A;--ok-soft:#12301F;--warn:#F2B84B;--warn-soft:#37290A;--err:#FF8A80;--err-soft:#3D1816;
+ --focus:#8CB8FF;--shadow:0 8px 30px rgba(0,0,0,.5);color-scheme:dark}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{background:var(--bg);color:var(--t1);font-family:var(--f-body);font-size:16px;line-height:1.5;-webkit-font-smoothing:antialiased}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.num{font-variant-numeric:tabular-nums}
+h1,h2,h3,p{margin:0}
+h1{font-size:1.75rem;line-height:2.25rem;font-weight:650;letter-spacing:-.01em;text-wrap:balance}
+h2{font-size:1.125rem;line-height:1.6rem;font-weight:600}
+h3{font-size:1rem;font-weight:600}
+.small{font-size:.875rem;line-height:1.25rem}.cap{font-size:.8125rem;line-height:1.1rem}
+.muted{color:var(--t2)}.faint{color:var(--t3)}
+.disp{font-family:var(--f-display);font-weight:600;letter-spacing:-.01em}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.ic{flex:none}
+
+.app{display:grid;grid-template-columns:248px minmax(0,1fr);min-height:100%}
+.side{position:sticky;top:0;align-self:start;height:100vh;height:100dvh;background:var(--sunken);border-right:1px solid var(--line);padding:20px 12px;padding-left:max(12px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:4px;overflow:auto}
+.brand{display:flex;align-items:center;gap:10px;padding:4px 10px 16px;font-family:var(--f-display);font-size:1.4rem;font-weight:600}
+.mark{width:30px;height:30px;border-radius:9px;background:var(--primary);color:var(--on-primary);display:grid;place-items:center}
+.grp{font-size:.75rem;letter-spacing:.06em;text-transform:uppercase;color:var(--t3);font-weight:600;padding:14px 10px 4px}
+.nav{display:flex;align-items:center;gap:12px;width:100%;min-height:44px;padding:8px 10px;border:0;border-radius:10px;background:none;color:var(--t2);font-weight:500;text-align:left}
+.nav:hover{background:var(--line)}
+.nav[aria-current="page"]{background:var(--primary-soft);color:var(--primary);font-weight:600}
+.badge{margin-left:auto;background:var(--accent);color:#fff;border-radius:99px;font-size:.75rem;min-width:20px;height:20px;padding:0 6px;display:grid;place-items:center;font-weight:600}
+:root[data-theme="dark"] .badge{color:#101716}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .badge{color:#101716}}
+.sp{flex:1}
+.main{min-width:0;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:1100px;margin:0 auto;padding-block:20px 48px;display:flex;flex-direction:column;gap:20px}
+.top{display:flex;align-items:center;gap:10px;justify-content:space-between}
+.top .t{min-width:0}
+.tools{display:flex;gap:8px;align-items:center}
+.bottom{display:none}
+@media (max-width:1023px){
+ .app{grid-template-columns:76px minmax(0,1fr)}
+ .side{padding:16px 8px;align-items:stretch}
+ .side .lbl,.side .grp,.brand span:last-child{display:none}
+ .nav{flex-direction:column;gap:2px;justify-content:center;font-size:.72rem;padding:8px 2px;text-align:center}
+ .brand{justify-content:center;padding:4px 0 12px}
+ .badge{position:absolute;margin:0;transform:translate(14px,-14px)}
+ .nav{position:relative}
+}
+@media (max-width:599px){
+ .app{display:block}
+ .side{display:none}
+ .wrap{padding-block:12px 110px}
+ .bottom{display:grid;grid-template-columns:repeat(5,1fr);position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--surface);border-top:1px solid var(--line);padding:6px max(8px,env(safe-area-inset-right,0px)) calc(6px + env(safe-area-inset-bottom,0px)) max(8px,env(safe-area-inset-left,0px))}
+ .bottom .nav{flex-direction:column;gap:2px;justify-content:center;font-size:.72rem;min-height:52px;padding:4px 0;text-align:center;position:relative}
+ h1{font-size:1.5rem;line-height:2rem}
+}
+
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px}
+.card.flush{padding:0;overflow:hidden}
+.card h2{margin-bottom:8px}
+.shead{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}
+.shead h2{margin:0}
+.link{background:none;border:0;color:var(--primary);font-weight:600;padding:6px 4px;min-height:36px;border-radius:8px}
+.link:hover{text-decoration:underline}
+.grid2{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:20px;align-items:start}
+.col{display:flex;flex-direction:column;gap:20px;min-width:0}
+@media (max-width:899px){.grid2{grid-template-columns:minmax(0,1fr)}}
+.stack{display:flex;flex-direction:column;gap:12px}
+.rowf{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:0 18px;border-radius:12px;border:1px solid var(--line-strong);background:var(--surface);font-weight:600;font-size:.9375rem}
+.btn:hover{background:var(--sunken)}
+.btn.pri{background:var(--primary);border-color:var(--primary);color:var(--on-primary)}
+.btn.pri:hover{background:var(--primary-h)}
+.btn.soft{background:var(--primary-soft);border-color:transparent;color:var(--primary)}
+.btn.danger{color:var(--err);border-color:var(--err)}
+.btn.sm{min-height:36px;padding:0 12px;border-radius:10px;font-size:.875rem}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.ibtn{width:44px;height:44px;display:grid;place-items:center;border-radius:12px;border:1px solid var(--line);background:var(--surface);color:var(--t2)}
+.ibtn:hover{background:var(--sunken)}
+.ibtn.sm{width:36px;height:36px;border-radius:10px;border-color:transparent;background:none}
+.chip{display:inline-flex;align-items:center;gap:6px;min-height:34px;padding:0 12px;border-radius:99px;border:1px solid var(--line-strong);background:var(--surface);font-size:.875rem;font-weight:500}
+.chip[aria-pressed="true"]{background:var(--primary-soft);border-color:var(--primary);color:var(--primary);font-weight:600}
+.pill{display:inline-flex;align-items:center;gap:4px;padding:1px 9px;border-radius:99px;font-size:.78rem;font-weight:600;background:var(--sunken);color:var(--t2);white-space:nowrap}
+.pill.ok{background:var(--ok-soft);color:var(--ok)}.pill.warn{background:var(--warn-soft);color:var(--warn)}.pill.err{background:var(--err-soft);color:var(--err)}.pill.pri{background:var(--primary-soft);color:var(--primary)}.pill.acc{background:var(--accent-soft);color:var(--accent)}
+
+.field{display:flex;flex-direction:column;gap:6px}
+.field label{font-size:.875rem;font-weight:500}
+.in{min-height:44px;width:100%;padding:0 12px;border-radius:10px;border:1px solid var(--line-strong);background:var(--surface)}
+.in::placeholder{color:var(--t3)}
+.chk{display:flex;align-items:center;gap:10px;min-height:44px}
+.chk input{width:22px;height:22px;accent-color:var(--primary)}
+.formgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.formgrid .full{grid-column:1/-1}
+@media (max-width:480px){.formgrid{grid-template-columns:1fr}}
+
+.list{display:flex;flex-direction:column}
+.item{display:flex;align-items:center;gap:12px;padding:10px 14px;min-height:56px;border-top:1px solid var(--line)}
+.item:first-child{border-top:0}
+.item .body{flex:1;min-width:0}
+.item .tt{font-weight:500;overflow-wrap:anywhere}
+.item.done .tt{text-decoration:line-through;color:var(--t3)}
+.tick{width:28px;height:28px;border-radius:50%;border:2px solid var(--line-strong);background:var(--surface);display:grid;place-items:center;color:transparent;flex:none;padding:0}
+.tick[aria-checked="true"]{background:var(--primary);border-color:var(--primary);color:var(--on-primary)}
+.tickwrap{width:44px;height:44px;display:grid;place-items:center;margin:-8px -8px -8px -10px;background:none;border:0;flex:none}
+.empty{padding:22px 16px;text-align:center;color:var(--t2)}
+.empty .disp{font-size:1.15rem;color:var(--t1);margin-bottom:4px}
+.strip{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:12px;background:var(--err-soft);color:var(--err);border:1px solid var(--err);text-align:left;width:100%}
+.strip .tx{color:var(--t1);flex:1;min-width:0}
+.strip b{color:var(--err)}
+
+.bar{height:8px;border-radius:99px;background:var(--sunken);overflow:hidden;border:1px solid var(--line)}
+.bar i{display:block;height:100%;background:var(--primary);border-radius:99px;transition:width .35s ease}
+.bar.over i{background:var(--err)}
+.rm .bar i,.rm *{transition:none!important;animation:none!important}
+@media (prefers-reduced-motion:reduce){.bar i,*{transition:none!important;animation:none!important}}
+.big{font-size:2rem;line-height:2.4rem;font-weight:650;letter-spacing:-.02em}
+.hero{display:flex;flex-direction:column;gap:10px}
+.hello{font-size:2.1rem;line-height:2.6rem}
+@media (max-width:599px){.hello{font-size:1.75rem;line-height:2.2rem}}
+.ask{display:flex;gap:8px;align-items:center;background:var(--primary-soft);border:1px solid var(--primary);border-radius:99px;padding:4px 4px 4px 16px}
+.ask input{flex:1;min-width:0;border:0;background:none;min-height:40px;outline:none;color:var(--t1)}
+.ask input::placeholder{color:var(--t2)}
+.ask:focus-within{outline:2px solid var(--focus);outline-offset:2px}
+
+.tabs{display:flex;gap:4px;overflow-x:auto;border-bottom:1px solid var(--line)}
+.tab{background:none;border:0;border-bottom:3px solid transparent;padding:10px 14px;min-height:44px;color:var(--t2);font-weight:500;white-space:nowrap}
+.tab[aria-selected="true"]{color:var(--primary);border-bottom-color:var(--primary);font-weight:600}
+
+.cal{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
+.cal .dow{font-size:.75rem;color:var(--t3);text-align:center;font-weight:600;padding:4px 0}
+.cell{min-height:64px;border:1px solid var(--line);border-radius:10px;background:var(--surface);padding:4px 6px;text-align:left;display:flex;flex-direction:column;gap:4px;overflow:hidden}
+.cell:hover{background:var(--sunken)}
+.cell.out{opacity:.45}
+.cell.today .dn{background:var(--primary);color:var(--on-primary)}
+.cell[aria-pressed="true"]{border-color:var(--primary);box-shadow:0 0 0 1px var(--primary)}
+.dn{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;font-size:.8125rem;font-weight:600}
+.dots{display:flex;gap:3px;flex-wrap:wrap}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--primary)}.dot.r{background:var(--accent)}.dot.t{background:var(--warn)}
+.week{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px}
+.wcol{border:1px solid var(--line);border-radius:12px;background:var(--surface);padding:8px;min-height:140px;display:flex;flex-direction:column;gap:6px}
+.wcol.today{border-color:var(--primary)}
+.ev{font-size:.8125rem;line-height:1.15rem;padding:4px 6px;border-radius:7px;background:var(--primary-soft);color:var(--t1);overflow-wrap:anywhere}
+.ev.r{background:var(--accent-soft)}.ev.t{background:var(--warn-soft)}.ev.d{text-decoration:line-through;opacity:.6}
+@media (max-width:760px){.week{grid-template-columns:1fr}.wcol{min-height:0}}
+@media (max-width:480px){.cell{min-height:52px;padding:3px}.dots{gap:2px}}
+
+.msgs{display:flex;flex-direction:column;gap:12px;min-height:280px}
+.m{max-width:min(620px,92%);padding:10px 14px;border-radius:16px;white-space:pre-wrap;overflow-wrap:anywhere}
+.m.u{align-self:flex-end;background:var(--primary);color:var(--on-primary);border-bottom-right-radius:4px}
+.m.a{align-self:flex-start;background:var(--surface);border:1px solid var(--line);border-bottom-left-radius:4px}
+.prop{align-self:flex-start;width:min(560px,100%);border:1.5px dashed var(--primary);background:var(--primary-soft);border-radius:14px;padding:12px 14px}
+.prop.applied{border-style:solid;background:var(--ok-soft);border-color:var(--ok)}
+.prop.rejected,.prop.undone{border-color:var(--line-strong);background:var(--sunken);opacity:.8}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:2px 12px;margin:6px 0 10px}
+.kv dt{color:var(--t2)}.kv dd{margin:0;font-weight:500;overflow-wrap:anywhere}
+.sugg{display:flex;gap:8px;flex-wrap:wrap}
+.think{display:inline-flex;gap:4px}.think i{width:7px;height:7px;border-radius:50%;background:var(--primary);animation:b 1s infinite ease-in-out}.think i:nth-child(2){animation-delay:.15s}.think i:nth-child(3){animation-delay:.3s}
+@keyframes b{0%,80%,100%{opacity:.3;transform:none}40%{opacity:1;transform:translateY(-3px)}}
+.compose{position:sticky;bottom:0;background:var(--bg);padding:8px 0 4px}
+@media (max-width:599px){.compose{bottom:76px;bottom:calc(72px + env(safe-area-inset-bottom,0px))}}
+
+.cats .crow{display:grid;grid-template-columns:minmax(110px,1.2fr) minmax(0,2fr) 96px;gap:10px;align-items:center;padding:10px 0;border-top:1px solid var(--line)}
+.cats .crow:first-child{border-top:0}
+.cats .alloc{width:96px;min-height:36px}
+@media (max-width:599px){.cats .crow{grid-template-columns:1fr 96px}.cats .crow .bar{grid-column:1/-1;order:3}}
+.chart{width:100%;height:auto;display:block}
+.chart .b{fill:var(--primary)}.chart .b.today{fill:var(--accent)}.chart text{fill:var(--t3);font-size:10px}.chart line{stroke:var(--line)}
+.amt{font-variant-numeric:tabular-nums;font-weight:600;white-space:nowrap}
+.amt.neg{color:var(--t1)}.amt.pos{color:var(--ok)}
+.tripcard{display:flex;flex-direction:column;gap:10px;text-align:left;width:100%;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px}
+.tripcard:hover{border-color:var(--primary)}
+.stat{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px}
+.stat>div{background:var(--sunken);border-radius:12px;padding:12px}
+.stat .v{font-size:1.25rem;font-weight:650;font-variant-numeric:tabular-nums}
+
+.scrim{position:fixed;inset:0;background:rgba(10,16,15,.5);z-index:50;display:flex;align-items:flex-end;justify-content:center}
+.sheet{background:var(--surface);width:100%;max-width:520px;max-height:92%;overflow:auto;border-radius:20px 20px 0 0;padding:18px max(18px,env(safe-area-inset-left,0px)) calc(18px + env(safe-area-inset-bottom,0px));box-shadow:var(--shadow)}
+.sheet .hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+@media (min-width:600px){.scrim{align-items:center}.sheet{border-radius:18px;padding-bottom:18px}}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(88px + env(safe-area-inset-bottom,0px));z-index:60;background:var(--t1);color:var(--bg);padding:10px 14px;border-radius:12px;display:flex;gap:14px;align-items:center;box-shadow:var(--shadow);max-width:calc(100% - 32px)}
+.toast button{background:none;border:0;color:var(--bg);font-weight:700;text-decoration:underline;min-height:32px}
+@media (min-width:600px){.toast{bottom:24px}}
+.sw{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:52px;padding:6px 0;border-top:1px solid var(--line)}
+.sw:first-of-type{border-top:0}
+.sw button[role="switch"]{width:48px;height:28px;border-radius:99px;border:1px solid var(--line-strong);background:var(--sunken);position:relative;flex:none;padding:0}
+.sw button[role="switch"]::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:var(--t2);transition:transform .15s}
+.sw button[aria-checked="true"]{background:var(--primary);border-color:var(--primary)}
+.sw button[aria-checked="true"]::after{transform:translateX(20px);background:var(--on-primary)}
+.note{font-size:.8125rem;color:var(--t2);background:var(--sunken);border-radius:10px;padding:8px 12px}
+</style>
+<div id="root"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/htm@3.1.1/dist/htm.umd.js"></script>
+<script>
+const {useState,useEffect,useMemo,useRef}=React;
+const html=htm.bind(React.createElement);
+
+/* ---------- dates, money ---------- */
+const pad=n=>String(n).padStart(2,'0');
+const iso=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+const parse=s=>{const [y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d)};
+const today=()=>iso(new Date());
+const addDays=(s,n)=>{const d=parse(s);d.setDate(d.getDate()+n);return iso(d)};
+const diff=(a,b)=>Math.round((parse(a)-parse(b))/864e5);
+const fmt=(s,o)=>parse(s).toLocaleDateString('en-GB',o);
+const rel=s=>{const n=diff(s,today());if(n===0)return 'Today';if(n===1)return 'Tomorrow';if(n===-1)return 'Yesterday';
+ return fmt(s,{weekday:'short',day:'numeric',month:'short'})};
+const uid=()=>Math.random().toString(36).slice(2,9);
+const SYM={GBP:'£',NGN:'₦',EUR:'€',USD:'$'};
+const money=(n,cur)=>{const v=Math.abs(n);const s=new Intl.NumberFormat('en-GB',{style:'currency',currency:cur||'GBP',minimumFractionDigits:v%1===0?0:2,maximumFractionDigits:2}).format(v);return (n<0?'−':'')+s};
+const sum=a=>a.reduce((x,y)=>x+y,0);
+const startOfWeek=(s,ws)=>{const d=parse(s);const k=(d.getDay()-ws+7)%7;return addDays(s,-k)};
+const CATS=['Flights','Stay','Transport','Food','Gifts & shopping','Outfits','Other'];
+
+/* ---------- sample data (clearly sample) ---------- */
+function seed(){
+ const T=today(),trip='trip1';
+ const task=(title,d,pr,x)=>({id:uid(),title,due:d,priority:pr||'med',done:false,...x});
+ return {v:1,
+ settings:{name:'Amara',currency:'GBP',weekStart:1,theme:'system',reduceMotion:false,notif:{reminders:true,digest:false,assistant:true}},
+ tasks:[
+  task('Pay hotel deposit',T,'high',{amount:350,trip}),
+  task('Book airport transfer in Lagos',T,'high',{trip}),
+  task('Outfit fitting, 3 pm',T,'med',{trip}),
+  task('Get visa photo taken',addDays(T,-2),'high',{trip}),
+  task('Pay shipping fee for gifts',addDays(T,-1),'med',{amount:42,trip}),
+  task('Collect altered suit from tailor',addDays(T,1),'med',{trip}),
+  task('Buy gifts for family',addDays(T,4),'med',{trip}),
+  task('Call Aunty about airport pickup',addDays(T,3),'low',{trip}),
+  task('Confirm guest numbers with caterer',addDays(T,6),'med',{trip}),
+  task('Renew car insurance',addDays(T,14),'low')
+ ],
+ expenses:[
+  {id:'e1',type:'expense',title:'Flights London to Lagos',amount:780,cat:'Flights',date:addDays(T,-20),trip,booking:'b1'},
+  {id:uid(),type:'expense',title:'Outfit deposit',amount:120,cat:'Outfits',date:addDays(T,-9),trip},
+  {id:uid(),type:'expense',title:'Suit alteration',amount:35,cat:'Outfits',date:addDays(T,-3),trip},
+  {id:uid(),type:'expense',title:'Lunch with the tailor',amount:14.2,cat:'Food',date:addDays(T,-3),trip},
+  {id:uid(),type:'expense',title:'Gift wrap',amount:8,cat:'Gifts & shopping',date:addDays(T,-2),trip},
+  {id:uid(),type:'expense',title:'Airport parking pre-booked',amount:24.5,cat:'Transport',date:addDays(T,-1),trip},
+  {id:uid(),type:'income',title:'Salary',amount:2850,cat:'Income',date:addDays(T,-6)}
+ ],
+ alloc:{Flights:780,Stay:600,Transport:200,Food:250,'Gifts & shopping':350,Outfits:220,Other:0},
+ reminders:[
+  {id:uid(),title:'Pay hotel deposit',date:T,time:'09:00',repeat:'none',important:true,done:false},
+  {id:uid(),title:'Submit visa form',date:addDays(T,-1),time:'12:00',repeat:'none',important:true,done:false},
+  {id:uid(),title:'Call Aunty about pickup',date:addDays(T,2),time:'18:00',repeat:'none',important:false,done:false},
+  {id:uid(),title:'Take vitamins',date:T,time:'08:00',repeat:'daily',important:false,done:false},
+  {id:uid(),title:'Review trip budget',date:addDays(T,3),time:'19:00',repeat:'weekly',important:false,done:false},
+  {id:uid(),title:'Book flights',date:addDays(T,-20),time:'10:00',repeat:'none',important:false,done:true}
+ ],
+ trips:[{id:trip,name:'Lagos wedding trip',dest:'Lagos, Nigeria',start:addDays(T,11),end:addDays(T,21),budget:2400,
+  bookings:[
+   {id:'b1',type:'Flight',title:'Return flight, London to Lagos',cost:780,paid:true,cat:'Flights'},
+   {id:'b2',type:'Stay',title:'Hotel, 10 nights',cost:600,paid:false,cat:'Stay'},
+   {id:'b3',type:'Transport',title:'Airport transfer, Lagos',cost:60,paid:false,cat:'Transport'}],
+  itinerary:[
+   {id:uid(),date:addDays(T,11),time:'21:00',title:'Fly London to Lagos'},
+   {id:uid(),date:addDays(T,12),time:'10:00',title:'Arrive and check in'},
+   {id:uid(),date:addDays(T,14),time:'12:00',title:'Family visits'},
+   {id:uid(),date:addDays(T,16),time:'11:00',title:'Wedding ceremony'},
+   {id:uid(),date:addDays(T,19),time:'10:00',title:'Shopping at the market'},
+   {id:uid(),date:addDays(T,21),time:'20:00',title:'Fly home'}],
+  checklist:[
+   {id:uid(),text:'Passport valid for 6+ months',done:true},
+   {id:uid(),text:'Travel insurance',done:true},
+   {id:uid(),text:'Visa photo and form',done:false},
+   {id:uid(),text:'Vaccination records',done:false},
+   {id:uid(),text:'Tell the bank about travel',done:false},
+   {id:uid(),text:'Pack outfits and gifts',done:false}]}],
+ chat:[{id:uid(),role:'a',text:"Hello. I can add tasks, log spending and set reminders from a sentence. Anything that changes your data comes to you first as a card to approve."}]};
+}
+const KEY='lifelyn-demo-v1';
+function load(){try{const r=localStorage.getItem(KEY);if(r){const s=JSON.parse(r);if(s&&s.v===1)return s}}catch(e){}return seed()}
+
+/* ---------- icons ---------- */
+const P={home:'M3 11l9-8 9 8v10a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z',cal:'M7 3v4M17 3v4M4 9h16M5 5h14a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z',
+ spark:'M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8zM19 16l.7 2 2 .7-2 .7-.7 2-.7-2-2-.7 2-.7z',wallet:'M4 7h15a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1zM4 7l12-3v3M16 14h2',
+ plane:'M3 11l18-8-8 18-2-8z',bell:'M6 9a6 6 0 0 1 12 0c0 6 2 7 2 7H4s2-1 2-7zM10 20a2 2 0 0 0 4 0',gear:'M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8zM12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2',
+ plus:'M12 5v14M5 12h14',check:'M5 12l5 5 9-10',x:'M6 6l12 12M18 6L6 18',l:'M15 5l-7 7 7 7',r:'M9 5l7 7-7 7',send:'M4 12l16-8-6 16-3-7z',trash:'M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13',
+ sun:'M12 7a5 5 0 1 0 0 10 5 5 0 0 0 0-10zM12 2v2M12 20v2M2 12h2M20 12h2',moon:'M20 14A8 8 0 0 1 10 4a8 8 0 1 0 10 10z',menu:'M4 6h16M4 12h16M4 18h16',list:'M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01',
+ alert:'M12 4l9 16H3zM12 10v4M12 17h.01',repeat:'M17 2l3 3-3 3M4 11V9a4 4 0 0 1 4-4h12M7 22l-3-3 3-3M20 13v2a4 4 0 0 1-4 4H4'};
+const Ic=({n,s=20})=>html`<svg className="ic" width=${s} height=${s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d=${P[n]}/></svg>`;
+
+/* ---------- assistant: local rule-based parser (not Claude) ---------- */
+const WD=['sunday','monday','tuesday','wednesday','thursday','friday','saturday'];
+function pDate(t){t=t.toLowerCase();const T=today();
+ if(/\btoday\b|\btonight\b/.test(t))return T;if(/\btomorrow\b/.test(t))return addDays(T,1);
+ let m=t.match(/\bin (\d+) days?\b/);if(m)return addDays(T,+m[1]);if(/\bnext week\b/.test(t))return addDays(T,7);
+ m=t.match(/\b(sunday|monday|tuesday|wednesday|thursday|friday|saturday)\b/);
+ if(m){let d=(WD.indexOf(m[1])-parse(T).getDay()+7)%7;if(d===0)d=7;return addDays(T,d)}return null}
+function pTime(t){const m=t.toLowerCase().match(/\bat (\d{1,2})(?::(\d{2}))?\s?(am|pm)?\b/);if(!m)return null;let h=+m[1];if(m[3]==='pm'&&h<12)h+=12;if(m[3]==='am'&&h===12)h=0;if(h>23)return null;return pad(h)+':'+(m[2]||'00')}
+function pAmt(t){const m=t.match(/[£₦€$]\s?(\d[\d,]*(?:\.\d+)?)/)||t.match(/(\d[\d,]*(?:\.\d+)?)\s?(?:pounds|quid|gbp|naira|euros?|dollars?)\b/i);return m?parseFloat(m[1].replace(/,/g,'')):null}
+function pCat(t){t=t.toLowerCase();
+ if(/flight|airline/.test(t))return 'Flights';if(/hotel|stay|airbnb|room/.test(t))return 'Stay';
+ if(/taxi|uber|bolt|transfer|parking|fuel|petrol|train|bus/.test(t))return 'Transport';
+ if(/food|lunch|dinner|breakfast|restaurant|coffee|groceries|snack/.test(t))return 'Food';
+ if(/gift|present|shop|souvenir/.test(t))return 'Gifts & shopping';
+ if(/suit|dress|outfit|tailor|fabric|shoes|aso/.test(t))return 'Outfits';return 'Other'}
+function clean(t){let s=t.replace(/[£₦€$]\s?\d[\d,]*(\.\d+)?/g,'').replace(/\d[\d,]*(\.\d+)?\s?(pounds|quid|gbp|naira|euros?|dollars?)\b/gi,'')
+ .replace(/\bat \d{1,2}(:\d{2})?\s?(am|pm)?\b/gi,'').replace(/\b(today|tonight|tomorrow|next week|in \d+ days?|on (sunday|monday|tuesday|wednesday|thursday|friday|saturday)|(sunday|monday|tuesday|wednesday|thursday|friday|saturday))\b/gi,'')
+ .replace(/^\s*(please\s+)?(can you\s+)?(add|create|new|make|set|log|remind me to|remind me|i need to|i have to|i must|task:?|todo:?|a task to|task to|spent|paid|bought|received|got)\s+(a\s+|an\s+|the\s+)?/i,'')
+ .replace(/^(on|for|to)\s+/i,'').replace(/\s+/g,' ').trim();return s?s[0].toUpperCase()+s.slice(1):''}
+function interpret(text,S){
+ const t=text.trim(),l=t.toLowerCase(),T=today(),cur=S.settings.currency;
+ const open=S.tasks.filter(x=>!x.done);
+ if(/remind/.test(l)){const title=clean(t)||'Reminder';const d=pDate(t)||T;const tm=pTime(t)||'09:00';
+  return {text:'I can set this reminder. Check the details and approve it.',proposals:[{kind:'reminder',data:{title,date:d,time:tm,repeat:/every day|daily/.test(l)?'daily':/every week|weekly/.test(l)?'weekly':'none',important:false}}]}}
+ const amt=pAmt(t);
+ if(amt!=null&&/(received|got paid|salary|income|earned|refund)/.test(l))return {text:'I can log this income.',proposals:[{kind:'tx',data:{type:'income',title:clean(t)||'Income',amount:amt,cat:'Income',date:pDate(t)||T}}]};
+ if(amt!=null&&/(spent|paid|bought|cost|pay|expense)/.test(l)){const title=clean(t)||'Expense';return {text:'I can add this expense. It will count against your '+pCat(t)+' budget.',proposals:[{kind:'tx',data:{type:'expense',title,amount:amt,cat:pCat(t),date:pDate(t)||T}}]}}
+ if(/overdue|late|behind/.test(l)){const od=open.filter(x=>x.due<T);return {text:od.length?'You have '+od.length+' overdue:\n'+od.map(x=>'• '+x.title+' ('+rel(x.due)+')').join('\n'):'Nothing is overdue.'}}
+ if(/(what|show|list).*(today|due|on)|today.*(task|due)|my day/.test(l)){const d=pDate(t)||T;const tk=open.filter(x=>x.due===d);const rm=S.reminders.filter(r=>!r.done&&r.date===d);
+  return {text:(tk.length+rm.length)?rel(d)+':\n'+tk.map(x=>'• '+x.title).concat(rm.map(r=>'• '+r.time+' '+r.title+' (reminder)')).join('\n'):'Nothing planned for '+rel(d).toLowerCase()+'.'}}
+ if(/budget|left|spend|spent|money|afford/.test(l)){const tot=sum(Object.values(S.alloc)),sp=sum(S.expenses.filter(e=>e.type==='expense').map(e=>e.amount));
+  const unpaid=sum(S.trips.flatMap(x=>x.bookings).filter(b=>!b.paid).map(b=>b.cost));
+  return {text:'Budget '+money(tot,cur)+', spent '+money(sp,cur)+', left '+money(tot-sp,cur)+'.\nBookings still to pay: '+money(unpaid,cur)+', which leaves '+money(tot-sp-unpaid,cur)+' once they are paid.'}}
+ if(/trip|wedding|lagos|travel|flight/.test(l)){const x=S.trips[0];if(!x)return {text:'You have no trips yet. Add one in Travel.'};
+  const un=x.bookings.filter(b=>!b.paid);return {text:x.name+' is in '+diff(x.start,T)+' days. '+x.checklist.filter(c=>c.done).length+' of '+x.checklist.length+' checklist items are done.\nStill to pay: '+money(sum(un.map(b=>b.cost)),cur)+(un.length?' ('+un.map(b=>b.title).join(', ')+')':'.')}}
+ const title=clean(t);
+ if(title&&title.length>2&&/(add|create|new|task|todo|need to|have to|must|buy|call|book|pay|send|pick|collect|renew|email|submit)/.test(l))
+  return {text:'I can add this task.',proposals:[{kind:'task',data:{title,due:pDate(t)||T,priority:/urgent|asap|important/.test(l)?'high':'med',amount:amt}}]};
+ return {text:"I didn't catch that. Try \"add task buy gifts on friday\", \"spent £20 on lunch\", \"remind me to call Aunty tomorrow at 6pm\", or ask \"what's due today?\"."}}
+
+/* ---------- small components ---------- */
+function Sheet({title,onClose,children}){
+ useEffect(()=>{const k=e=>{if(e.key==='Escape')onClose()};document.addEventListener('keydown',k);return()=>document.removeEventListener('keydown',k)},[]);
+ const ref=useRef();useEffect(()=>{const f=ref.current&&ref.current.querySelector('input,select,button.pri');if(f)f.focus()},[]);
+ return html`<div className="scrim" onMouseDown=${e=>{if(e.target===e.currentTarget)onClose()}}><div className="sheet" role="dialog" aria-modal="true" aria-label=${title} ref=${ref}>
+  <div className="hd"><h2>${title}</h2><button className="ibtn sm" onClick=${onClose} aria-label="Close"><${Ic} n="x"/></button></div>${children}</div></div>`}
+function Form({fields,initial,submit,onSubmit,onCancel}){
+ const [v,setV]=useState(()=>({...Object.fromEntries(fields.map(f=>[f.k,f.type==='checkbox'?false:f.options?f.options[0][0]:''])),...initial}));
+ const set=(k,x)=>setV(o=>({...o,[k]:x}));
+ return html`<form className="stack" onSubmit=${e=>{e.preventDefault();onSubmit(v)}}><div className="formgrid">${fields.map(f=>html`
+  <div key=${f.k} className=${'field'+(f.full?' full':'')}>
+  ${f.type==='checkbox'?html`<label className="chk"><input type="checkbox" id=${'f-'+f.k} checked=${!!v[f.k]} onChange=${e=>set(f.k,e.target.checked)}/> ${f.label}</label>`:html`
+   <label htmlFor=${'f-'+f.k}>${f.label}</label>
+   ${f.options?html`<select id=${'f-'+f.k} className="in" value=${v[f.k]} onChange=${e=>set(f.k,e.target.value)}>${f.options.map(o=>html`<option key=${o[0]} value=${o[0]}>${o[1]}</option>`)}</select>`
+   :html`<input id=${'f-'+f.k} className="in" type=${f.type||'text'} step=${f.type==='number'?'0.01':undefined} min=${f.type==='number'?'0':undefined} required=${!!f.req} placeholder=${f.ph||''} value=${v[f.k]} onChange=${e=>set(f.k,e.target.value)}/>`}`}
+  </div>`)}</div>
+  <div className="rowf"><button type="submit" className="btn pri">${submit}</button><button type="button" className="btn" onClick=${onCancel}>Cancel</button></div></form>`}
+const Empty=({t,s,a})=>html`<div className="empty"><div className="disp">${t}</div><div className="small">${s}</div>${a}</div>`;
+const Bar=({v,max,over})=>html`<div className=${'bar'+(over?' over':'')} role="progressbar" aria-valuenow=${Math.round(v)} aria-valuemin="0" aria-valuemax=${Math.round(max)}><i style=${{width:Math.min(100,max>0?v/max*100:0)+'%'}}></i></div>`;
+function TaskRow({t,S,A,U}){const cur=S.settings.currency;const od=!t.done&&t.due<today();const tr=S.trips.find(x=>x.id===t.trip);
+ return html`<div className=${'item'+(t.done?' done':'')}>
+  <button className="tickwrap" role="checkbox" aria-checked=${t.done} aria-label=${(t.done?'Mark not done: ':'Mark done: ')+t.title} onClick=${()=>A.toggleTask(t.id)}><span className="tick" aria-checked=${t.done}><${Ic} n="check" s=${16}/></span></button>
+  <div className="body"><div className="tt">${t.title}</div>
+   <div className="rowf cap muted" style=${{gap:'6px'}}>${od?html`<span className="pill err"><${Ic} n="alert" s=${12}/> Overdue</span>`:null}<span>${rel(t.due)}</span>
+    ${t.priority==='high'?html`<span className="pill acc">High priority</span>`:null}${t.amount?html`<span className="num">${money(t.amount,cur)}</span>`:null}${tr?html`<span className="pill pri">${tr.name}</span>`:null}</div></div>
+  <button className="ibtn sm" aria-label=${'Delete '+t.title} onClick=${()=>A.deleteTask(t.id)}><${Ic} n="trash" s=${18}/></button></div>`}
+
+/* ---------- derived helpers ---------- */
+const itemsOn=(S,d)=>[
+ ...S.tasks.filter(t=>t.due===d).map(t=>({k:'t',id:t.id,title:t.title,done:t.done,time:''})),
+ ...S.reminders.filter(r=>r.date===d&&(!r.done||r.repeat!=='none')).map(r=>({k:'r',id:r.id,title:r.title,done:false,time:r.time})),
+ ...S.trips.flatMap(x=>x.itinerary.filter(i=>i.date===d).map(i=>({k:'i',id:i.id,title:i.title+' ('+x.name+')',done:false,time:i.time})))];
+const spentTotal=S=>sum(S.expenses.filter(e=>e.type==='expense').map(e=>e.amount));
+const allocTotal=S=>sum(Object.values(S.alloc));
+const unpaidAll=S=>sum(S.trips.flatMap(x=>x.bookings).filter(b=>!b.paid).map(b=>b.cost));
+
+/* ---------- Home ---------- */
+function Home({S,A,U}){
+ const T=today(),cur=S.settings.currency,hr=new Date().getHours();
+ const hi=hr<12?'Good morning':hr<18?'Good afternoon':'Good evening';
+ const [q,setQ]=useState('');
+ const dueToday=S.tasks.filter(t=>t.due===T),openToday=dueToday.filter(t=>!t.done);
+ const overdue=S.tasks.filter(t=>!t.done&&t.due<T).sort((a,b)=>a.due<b.due?-1:1);
+ const od2=S.reminders.filter(r=>!r.done&&r.date<T);
+ const trip=S.trips.filter(x=>x.end>=T).sort((a,b)=>a.start<b.start?-1:1)[0];
+ const upcoming=[];for(let i=1;i<=7;i++){const d=addDays(T,i);itemsOn(S,d).forEach(x=>upcoming.push({...x,d}))}
+ const left=allocTotal(S)-spentTotal(S);const recent=[...S.expenses].sort((a,b)=>a.date<b.date?1:-1).slice(0,3);
+ const imp=S.reminders.filter(r=>!r.done&&r.important&&diff(r.date,T)<=7);
+ const ask=e=>{e.preventDefault();if(!q.trim())return;U.go('assistant',q.trim());setQ('')};
+ const unpaid=trip?trip.bookings.filter(b=>!b.paid):[];
+ return html`<div className="stack" style=${{gap:'20px'}}>
+ <div className="hero"><div><h1 className="disp hello">${hi}, ${S.settings.name}</h1>
+  <p className="muted">${fmt(T,{weekday:'long',day:'numeric',month:'long'})}${trip?html` · <b>${diff(trip.start,T)>0?diff(trip.start,T)+' days to '+trip.name:trip.name+' is under way'}</b>`:''}</p></div>
+  <form className="ask" onSubmit=${ask}><span aria-hidden="true" style=${{color:'var(--primary)'}}><${Ic} n="spark"/></span><label className="sr" htmlFor="homeask">Ask the assistant</label>
+   <input id="homeask" value=${q} onChange=${e=>setQ(e.target.value)} placeholder="Ask or add: “remind me to call Aunty tomorrow at 6pm”"/><button className="btn pri sm" type="submit">Ask</button></form>
+  <div className="rowf small muted"><span className="num"><b>${dueToday.filter(t=>t.done).length} of ${dueToday.length}</b> due today done</span><div style=${{flex:1,minWidth:120,maxWidth:260}}><${Bar} v=${dueToday.filter(t=>t.done).length} max=${Math.max(1,dueToday.length)}/></div></div></div>
+ <div className="grid2"><div className="col">
+  ${(overdue.length+od2.length)>0?html`<button className="strip" onClick=${()=>U.go('planner')}><${Ic} n="alert"/><div className="tx"><b>${overdue.length+od2.length} overdue</b><div className="small">${overdue.slice(0,2).map(x=>x.title).concat(od2.slice(0,1).map(r=>r.title)).slice(0,2).join(' · ')}</div></div><${Ic} n="r"/></button>`:null}
+  <div className="card flush"><div className="shead" style=${{padding:'14px 16px 0'}}><h2>Today</h2><button className="btn sm soft" onClick=${()=>U.open('task',{date:T})}><${Ic} n="plus" s=${16}/> Add task</button></div>
+   ${dueToday.length?html`<div className="list">${dueToday.map(t=>html`<${TaskRow} key=${t.id} t=${t} S=${S} A=${A} U=${U}/>`)}</div>`:html`<${Empty} t="A clear day" s="Nothing is due today. Add a task or ask the assistant."/>`}</div>
+  <div className="card"><div className="shead"><h2>Coming up</h2><button className="link" onClick=${()=>U.go('planner')}>Open planner</button></div>
+   ${upcoming.length?html`<div className="stack" style=${{gap:'8px'}}>${upcoming.slice(0,6).map(x=>html`<div key=${x.k+x.id} className="rowf small"><span className=${'pill '+(x.k==='r'?'acc':x.k==='i'?'warn':'pri')} style=${{minWidth:70,justifyContent:'center'}}>${rel(x.d)}</span><span style=${{flex:1,minWidth:0,overflowWrap:'anywhere'}}>${x.title}</span><span className="faint num">${x.time}</span></div>`)}</div>`:html`<p className="muted small">Nothing in the next 7 days.</p>`}</div>
+ </div><div className="col">
+  ${trip?html`<button className="tripcard" onClick=${()=>U.go('travel',trip.id)}><div className="rowf" style=${{justifyContent:'space-between'}}><h2 style=${{margin:0}}>${trip.name}</h2><span className="pill acc">${diff(trip.start,T)>0?diff(trip.start,T)+' days to go':'Under way'}</span></div>
+   <div className="small muted num">${trip.checklist.filter(c=>c.done).length} of ${trip.checklist.length} checklist items done</div><${Bar} v=${trip.checklist.filter(c=>c.done).length} max=${Math.max(1,trip.checklist.length)}/>
+   <div className="small"><b className="num">${money(sum(unpaid.map(b=>b.cost)),cur)}</b> still to pay${unpaid.length?' ('+unpaid.length+' booking'+(unpaid.length>1?'s':'')+')':''}</div></button>`:null}
+  <div className="card"><div className="shead"><h2>Budget</h2><button className="link" onClick=${()=>U.go('budget')}>Open</button></div>
+   <div className="big num" style=${{color:left<0?'var(--err)':'var(--t1)'}}>${money(left,cur)}</div><div className="small muted">${left<0?'over budget':'left to spend'} of <span className="num">${money(allocTotal(S),cur)}</span></div>
+   <div style=${{margin:'10px 0'}}><${Bar} v=${spentTotal(S)} max=${allocTotal(S)} over=${left<0}/></div>
+   ${recent.map(e=>html`<div key=${e.id} className="rowf small" style=${{justifyContent:'space-between',flexWrap:'nowrap'}}><span style=${{minWidth:0,overflowWrap:'anywhere'}}>${e.title}</span><span className=${'amt '+(e.type==='income'?'pos':'')}>${e.type==='income'?'+':'−'}${money(e.amount,cur).replace('−','')}</span></div>`)}</div>
+  ${imp.length?html`<div className="card"><h2>Important reminders</h2>${imp.map(r=>html`<div key=${r.id} className="rowf small" style=${{justifyContent:'space-between'}}><span>${r.title}</span><span className="pill warn">${rel(r.date)} ${r.time}</span></div>`)}</div>`:null}
+ </div></div></div>`}
+
+/* ---------- Assistant ---------- */
+function Assistant({S,A,U,seedQ}){
+ const [q,setQ]=useState('');const [busy,setBusy]=useState(false);const end=useRef();const first=useRef(true);
+ const send=text=>{if(!text.trim()||busy)return;A.chat(m=>[...m,{id:uid(),role:'u',text}]);setBusy(true);
+  setTimeout(()=>{const r=interpret(text,S);A.chat(m=>[...m,{id:uid(),role:'a',text:r.text,proposals:(r.proposals||[]).map(p=>({...p,id:uid(),status:'pending'}))}]);setBusy(false)},S.settings.reduceMotion?0:450)};
+ useEffect(()=>{if(first.current&&seedQ){first.current=false;send(seedQ)}},[]);
+ useEffect(()=>{if(end.current)end.current.scrollIntoView({block:'end'})},[S.chat.length,busy]);
+ const setP=(mid,pid,patch)=>A.chat(ms=>ms.map(m=>m.id===mid?{...m,proposals:m.proposals.map(p=>p.id===pid?{...p,...patch}:p)}:m));
+ const approve=(m,p)=>{const d=p.data;let cid;
+  if(p.kind==='task')cid=A.addTask({title:d.title,due:d.due,priority:d.priority,amount:d.amount||undefined},true);
+  if(p.kind==='tx')cid=A.addTx(d,true);if(p.kind==='reminder')cid=A.addReminder(d,true);setP(m.id,p.id,{status:'applied',cid})};
+ const undo=(m,p)=>{if(p.kind==='task')A.deleteTask(p.cid,true);if(p.kind==='tx')A.deleteTx(p.cid,true);if(p.kind==='reminder')A.deleteReminder(p.cid,true);setP(m.id,p.id,{status:'undone'})};
+ const rows=p=>{const d=p.data,c=S.settings.currency;
+  if(p.kind==='task')return [['Task',d.title],['Due',rel(d.due)],['Priority',d.priority==='high'?'High':'Normal']].concat(d.amount?[['Amount',money(d.amount,c)]]:[]);
+  if(p.kind==='tx')return [[d.type==='income'?'Income':'Expense',d.title],['Amount',money(d.amount,c)],['Category',d.cat],['Date',rel(d.date)]];
+  return [['Reminder',d.title],['When',rel(d.date)+' at '+d.time],['Repeats',d.repeat==='none'?'No':d.repeat]]};
+ const label={task:'Add task',tx:'Add transaction',reminder:'Set reminder'};
+ return html`<div className="stack"><div className="note">This assistant runs on simple rules inside this page. It is not connected to Claude or any server. The approval cards show how the real assistant will ask before it changes anything.</div>
+  <div className="msgs" role="log" aria-live="polite">
+   ${S.chat.map(m=>html`<${React.Fragment} key=${m.id}><div className=${'m '+m.role}>${m.text}</div>
+    ${(m.proposals||[]).map(p=>html`<div key=${p.id} className=${'prop '+p.status}><div className="rowf" style=${{justifyContent:'space-between'}}><b><${Ic} n="spark" s=${16}/> ${label[p.kind]}</b>
+      <span className=${'pill '+(p.status==='applied'?'ok':p.status==='pending'?'pri':'')}>${p.status==='pending'?'Needs your approval':p.status==='applied'?'Added':p.status==='undone'?'Undone':'Not added'}</span></div>
+      <dl className="kv small">${rows(p).map(r=>html`<${React.Fragment} key=${r[0]}><dt>${r[0]}</dt><dd>${r[1]}</dd><//>`)}</dl>
+      ${p.status==='pending'?html`<div className="rowf"><button className="btn pri sm" onClick=${()=>approve(m,p)}><${Ic} n="check" s=${16}/> Approve</button><button className="btn sm" onClick=${()=>setP(m.id,p.id,{status:'rejected'})}>Reject</button></div>`:null}
+      ${p.status==='applied'?html`<button className="btn sm" onClick=${()=>undo(m,p)}><${Ic} n="undo" s=${16}/> Undo</button>`:null}</div>`)}<//>`)}
+   ${busy?html`<div className="m a" aria-label="Assistant is thinking"><span className="think"><i></i><i></i><i></i></span></div>`:null}<div ref=${end}></div></div>
+  <div className="compose"><div className="sugg" style=${{marginBottom:8}}>${["What's due today?","Add task buy gifts on friday","Spent £20 on lunch","Remind me to call Aunty tomorrow at 6pm","How much is left in my budget?"].map(s=>html`<button key=${s} className="chip" onClick=${()=>send(s)}>${s}</button>`)}</div>
+   <form className="ask" onSubmit=${e=>{e.preventDefault();send(q);setQ('')}}><label className="sr" htmlFor="chatin">Message</label><input id="chatin" value=${q} onChange=${e=>setQ(e.target.value)} placeholder="Type a request"/><button className="btn pri sm" type="submit" disabled=${busy}><${Ic} n="send" s=${16}/> Send</button></form></div></div>`}
+
+/* ---------- Planner ---------- */
+function Planner({S,A,U}){
+ const [view,setView]=useState('day');const [cur,setCur]=useState(today());const [flt,setFlt]=useState('open');
+ const T=today(),ws=S.settings.weekStart;
+ const step=n=>setCur(c=>view==='month'?iso(new Date(parse(c).getFullYear(),parse(c).getMonth()+n,1)):addDays(c,view==='week'?7*n:n));
+ const title=view==='month'?fmt(cur,{month:'long',year:'numeric'}):view==='week'?fmt(startOfWeek(cur,ws),{day:'numeric',month:'short'})+' to '+fmt(addDays(startOfWeek(cur,ws),6),{day:'numeric',month:'short'}):fmt(cur,{weekday:'long',day:'numeric',month:'long'});
+ const dayItems=d=>itemsOn(S,d).sort((a,b)=>(a.time||'99')<(b.time||'99')?-1:1);
+ const Ev=({x})=>html`<div className=${'ev '+x.k+(x.done?' d':'')}>${x.time?x.time+' ':''}${x.title}</div>`;
+ let body;
+ if(view==='day'){const ts=S.tasks.filter(t=>t.due===cur),others=dayItems(cur).filter(x=>x.k!=='t');
+  body=html`<div className="stack"><div className="card flush"><div className="shead" style=${{padding:'14px 16px 0'}}><h2>Tasks</h2><button className="btn sm soft" onClick=${()=>U.open('task',{date:cur})}><${Ic} n="plus" s=${16}/> Add task</button></div>
+   ${ts.length?html`<div className="list">${ts.map(t=>html`<${TaskRow} key=${t.id} t=${t} S=${S} A=${A} U=${U}/>`)}</div>`:html`<${Empty} t="Nothing due" s="Add a task for this day."/>`}</div>
+   <div className="card"><h2>Reminders and trip plans</h2>${others.length?html`<div className="stack" style=${{gap:'6px'}}>${others.map(x=>html`<${Ev} key=${x.k+x.id} x=${x}/>`)}</div>`:html`<p className="muted small">No reminders or trip plans on this day.</p>`}</div></div>`}
+ else if(view==='week'){const s=startOfWeek(cur,ws);body=html`<div className="week">${Array.from({length:7},(_,i)=>addDays(s,i)).map(d=>html`<div key=${d} className=${'wcol'+(d===T?' today':'')}>
+   <button className="link" style=${{textAlign:'left',padding:0,minHeight:28}} onClick=${()=>{setCur(d);setView('day')}}>${fmt(d,{weekday:'short',day:'numeric'})}</button>
+   ${dayItems(d).map(x=>html`<${Ev} key=${x.k+x.id} x=${x}/>`)}${dayItems(d).length?null:html`<span className="cap faint">Free</span>`}</div>`)}</div>`}
+ else if(view==='month'){const first=iso(new Date(parse(cur).getFullYear(),parse(cur).getMonth(),1)),s=startOfWeek(first,ws),mo=parse(cur).getMonth();
+  const days=Array.from({length:42},(_,i)=>addDays(s,i));const names=Array.from({length:7},(_,i)=>fmt(addDays(s,i),{weekday:'short'}));
+  body=html`<div className="cal">${names.map(n=>html`<div key=${n} className="dow">${n}</div>`)}${days.map(d=>{const its=itemsOn(S,d);return html`<button key=${d} className=${'cell'+(parse(d).getMonth()!==mo?' out':'')+(d===T?' today':'')} aria-pressed=${d===cur} aria-label=${fmt(d,{weekday:'long',day:'numeric',month:'long'})+', '+its.length+' items'} onClick=${()=>{setCur(d);setView('day')}}>
+   <span className="dn">${parse(d).getDate()}</span><span className="dots">${its.slice(0,4).map((x,i)=>html`<i key=${i} className=${'dot '+(x.k==='r'?'r':x.k==='i'?'t':'')}></i>`)}</span></button>`})}</div>
+   <p className="cap muted" style=${{marginTop:8}}><span className="dot" style=${{display:'inline-block'}}></span> task &nbsp;<span className="dot r" style=${{display:'inline-block'}}></span> reminder &nbsp;<span className="dot t" style=${{display:'inline-block'}}></span> trip plan</p>`}
+ else{const list=[...S.tasks].filter(t=>flt==='all'||(flt==='open'?!t.done:t.done)).sort((a,b)=>a.due<b.due?-1:1);
+  body=html`<div className="stack"><div className="rowf">${[['open','Open'],['done','Done'],['all','All']].map(f=>html`<button key=${f[0]} className="chip" aria-pressed=${flt===f[0]} onClick=${()=>setFlt(f[0])}>${f[1]}</button>`)}
+   <span className="sp"></span><button className="btn sm pri" onClick=${()=>U.open('task',{date:T})}><${Ic} n="plus" s=${16}/> Add task</button></div>
+   <div className="card flush">${list.length?html`<div className="list">${list.map(t=>html`<${TaskRow} key=${t.id} t=${t} S=${S} A=${A} U=${U}/>`)}</div>`:html`<${Empty} t="Nothing here" s="Try another filter or add a task."/>`}</div></div>`}
+ return html`<div className="stack" style=${{gap:'16px'}}>
+  <div className="rowf" style=${{justifyContent:'space-between'}}><div role="tablist" className="tabs" aria-label="Planner view">${[['day','Day'],['week','Week'],['month','Month'],['tasks','Tasks']].map(v=>html`<button key=${v[0]} role="tab" className="tab" aria-selected=${view===v[0]} onClick=${()=>setView(v[0])}>${v[1]}</button>`)}</div></div>
+  ${view!=='tasks'?html`<div className="rowf" style=${{justifyContent:'space-between'}}><div className="rowf"><button className="ibtn" aria-label="Previous" onClick=${()=>step(-1)}><${Ic} n="l"/></button><button className="ibtn" aria-label="Next" onClick=${()=>step(1)}><${Ic} n="r"/></button><button className="btn sm" onClick=${()=>setCur(T)}>Today</button></div><h2 style=${{margin:0}}>${title}</h2></div>`:null}
+  ${body}</div>`}
+
+/* ---------- Budget ---------- */
+function Budget({S,A,U}){
+ const cur=S.settings.currency,T=today();const [tab,setTab]=useState('overview');
+ const ex=S.expenses.filter(e=>e.type==='expense'),inc=sum(S.expenses.filter(e=>e.type==='income').map(e=>e.amount));
+ const tot=allocTotal(S),sp=sum(ex.map(e=>e.amount)),left=tot-sp,un=unpaidAll(S);
+ const cats=CATS.filter(c=>S.alloc[c]>0||ex.some(e=>e.cat===c));
+ const days=Array.from({length:14},(_,i)=>addDays(T,i-13)),by=days.map(d=>sum(ex.filter(e=>e.date===d).map(e=>e.amount))),mx=Math.max(1,...by);
+ const txs=[...S.expenses].sort((a,b)=>a.date<b.date?1:-1);
+ return html`<div className="stack" style=${{gap:'16px'}}>
+  <div className="rowf" style=${{justifyContent:'space-between'}}><div role="tablist" className="tabs">${[['overview','Overview'],['tx','Transactions']].map(v=>html`<button key=${v[0]} role="tab" className="tab" aria-selected=${tab===v[0]} onClick=${()=>setTab(v[0])}>${v[1]}</button>`)}</div>
+   <button className="btn pri" onClick=${()=>U.open('tx')}><${Ic} n="plus" s=${18}/> Add transaction</button></div>
+  ${tab==='overview'?html`<div className="grid2"><div className="col">
+   <div className="card"><div className="small muted">${left<0?'Over budget by':'Left to spend'}</div><div className="big num" style=${{color:left<0?'var(--err)':'var(--t1)'}}>${money(Math.abs(left),cur)}</div>
+    <div style=${{margin:'10px 0'}}><${Bar} v=${sp} max=${tot} over=${left<0}/></div>
+    <div className="stat"><div><div className="cap muted">Total budget</div><div className="v">${money(tot,cur)}</div></div><div><div className="cap muted">Spent</div><div className="v">${money(sp,cur)}</div></div>
+     <div><div className="cap muted">Income logged</div><div className="v" style=${{color:'var(--ok)'}}>${money(inc,cur)}</div></div><div><div className="cap muted">After unpaid bookings</div><div className="v" style=${{color:tot-sp-un<0?'var(--err)':'var(--t1)'}}>${money(tot-sp-un,cur)}</div></div></div></div>
+   <div className="card"><h2>Spending, last 14 days</h2><svg className="chart" viewBox="0 0 336 110" role="img" aria-label=${'Daily spending for the last 14 days, highest '+money(mx,cur)}>
+     <line x1="0" y1="84" x2="336" y2="84"/>${by.map((v,i)=>html`<rect key=${i} className=${'b'+(i===13?' today':'')} x=${i*24+4} y=${84-v/mx*70} width="16" height=${Math.max(v>0?2:0,v/mx*70)} rx="3"><title>${fmt(days[i],{day:'numeric',month:'short'})}: ${money(v,cur)}</title></rect>`)}
+     <text x="4" y="102">${fmt(days[0],{day:'numeric',month:'short'})}</text><text x="332" y="102" textAnchor="end">Today</text></svg></div></div>
+   <div className="card cats"><h2>Categories</h2><p className="small muted" style=${{marginBottom:6}}>Change an allocation and every total updates.</p>
+    ${cats.map(c=>{const s=sum(ex.filter(e=>e.cat===c).map(e=>e.amount)),a=S.alloc[c]||0;return html`<div key=${c} className="crow"><div><div style=${{fontWeight:500}}>${c}</div><div className="cap muted num">${money(s,cur)} of ${money(a,cur)}${s>a?' · over by '+money(s-a,cur):''}</div></div>
+     <${Bar} v=${s} max=${a||1} over=${s>a}/><div><label className="sr" htmlFor=${'al-'+c}>Allocation for ${c}</label><input id=${'al-'+c} className="in alloc num" type="number" min="0" value=${a} onChange=${e=>A.setAlloc(c,Math.max(0,parseFloat(e.target.value)||0))}/></div></div>`})}</div></div>`
+  :html`<div className="card flush">${txs.length?html`<div className="list">${txs.map(e=>html`<div key=${e.id} className="item"><div className="body"><div className="tt">${e.title}</div><div className="cap muted">${rel(e.date)} · ${e.cat}${e.booking?' · booking':''}</div></div>
+    <span className=${'amt '+(e.type==='income'?'pos':'')}>${e.type==='income'?'+':'−'}${money(e.amount,cur).replace('−','')}</span><button className="ibtn sm" aria-label=${'Delete '+e.title} onClick=${()=>A.deleteTx(e.id)}><${Ic} n="trash" s=${18}/></button></div>`)}</div>`:html`<${Empty} t="No transactions" s="Add your first expense or income."/>`}</div>`}</div>`}
+
+/* ---------- Travel ---------- */
+function Travel({S,A,U,sel,setSel}){
+ const cur=S.settings.currency,T=today();const [tab,setTab]=useState('overview');const [ci,setCi]=useState('');
+ const trip=S.trips.find(x=>x.id===sel);
+ if(!trip)return html`<div className="stack"><div className="rowf" style=${{justifyContent:'space-between'}}><p className="muted">Your trips, with bookings, plans and a checklist for each.</p><button className="btn pri" onClick=${()=>U.open('trip')}><${Ic} n="plus" s=${18}/> New trip</button></div>
+  ${S.trips.length?html`<div className="grid2" style=${{gridTemplateColumns:'repeat(auto-fill,minmax(280px,1fr))'}}>${S.trips.map(x=>{const sp=sum(S.expenses.filter(e=>e.trip===x.id&&e.type==='expense').map(e=>e.amount));const d=diff(x.start,T);
+   return html`<button key=${x.id} className="tripcard" onClick=${()=>{setSel(x.id);setTab('overview')}}><div className="rowf" style=${{justifyContent:'space-between'}}><h2 style=${{margin:0}}>${x.name}</h2><span className="pill acc">${d>0?d+' days':'Under way'}</span></div>
+    <div className="small muted">${x.dest} · ${fmt(x.start,{day:'numeric',month:'short'})} to ${fmt(x.end,{day:'numeric',month:'short',year:'numeric'})}</div><${Bar} v=${sp} max=${x.budget||1} over=${sp>x.budget}/>
+    <div className="small num">${money(sp,cur)} of ${money(x.budget,cur)} spent</div></button>`})}</div>`:html`<div className="card"><${Empty} t="No trips yet" s="Create a trip to track bookings, plans and costs together."/></div>`}</div>`;
+ const sp=sum(S.expenses.filter(e=>e.trip===trip.id&&e.type==='expense').map(e=>e.amount)),un=trip.bookings.filter(b=>!b.paid),unc=sum(un.map(b=>b.cost));
+ const free=trip.budget-sp-unc,done=trip.checklist.filter(c=>c.done).length;
+ const days=[...new Set(trip.itinerary.map(i=>i.date))].sort();
+ return html`<div className="stack" style=${{gap:'16px'}}>
+  <div className="rowf" style=${{justifyContent:'space-between'}}><button className="btn sm" onClick=${()=>setSel(null)}><${Ic} n="l" s=${16}/> All trips</button><button className="btn sm danger" onClick=${()=>{A.deleteTrip(trip.id);setSel(null)}}><${Ic} n="trash" s=${16}/> Delete trip</button></div>
+  <div><h1 className="disp">${trip.name}</h1><p className="muted">${trip.dest} · ${fmt(trip.start,{day:'numeric',month:'long'})} to ${fmt(trip.end,{day:'numeric',month:'long',year:'numeric'})}</p></div>
+  <div role="tablist" className="tabs">${[['overview','Overview'],['itinerary','Itinerary'],['bookings','Bookings'],['checklist','Checklist']].map(v=>html`<button key=${v[0]} role="tab" className="tab" aria-selected=${tab===v[0]} onClick=${()=>setTab(v[0])}>${v[1]}</button>`)}</div>
+  ${tab==='overview'?html`<div className="card"><div className="stat"><div><div className="cap muted">Trip budget</div><div className="v">${money(trip.budget,cur)}</div></div><div><div className="cap muted">Spent so far</div><div className="v">${money(sp,cur)}</div></div>
+    <div><div className="cap muted">Still to pay</div><div className="v">${money(unc,cur)}</div></div><div><div className="cap muted">${free<0?'Short by':'Free after bookings'}</div><div className="v" style=${{color:free<0?'var(--err)':'var(--ok)'}}>${money(Math.abs(free),cur)}</div></div></div>
+   <div style=${{marginTop:14}}><div className="small muted num" style=${{marginBottom:6}}>Checklist ${done} of ${trip.checklist.length} · ${diff(trip.start,T)>0?diff(trip.start,T)+' days to go':'under way'}</div><${Bar} v=${done} max=${Math.max(1,trip.checklist.length)}/></div>
+   ${un.length?html`<h3 style=${{margin:'16px 0 6px'}}>Outstanding payments</h3>${un.map(b=>html`<div key=${b.id} className="rowf small" style=${{justifyContent:'space-between'}}><span>${b.title}</span><span className="amt">${money(b.cost,cur)}</span></div>`)}`:html`<p className="small muted" style=${{marginTop:12}}>All bookings are paid.</p>`}</div>`:null}
+  ${tab==='itinerary'?html`<div className="stack"><div><button className="btn sm pri" onClick=${()=>U.open('itin',{trip:trip.id,date:trip.start})}><${Ic} n="plus" s=${16}/> Add plan</button></div>
+   ${days.length?days.map(d=>html`<div key=${d} className="card"><h3>${fmt(d,{weekday:'long',day:'numeric',month:'long'})}</h3>${trip.itinerary.filter(i=>i.date===d).sort((a,b)=>a.time<b.time?-1:1).map(i=>html`<div key=${i.id} className="rowf small" style=${{justifyContent:'space-between',flexWrap:'nowrap',padding:'4px 0'}}><span><b className="num">${i.time}</b> ${i.title}</span><button className="ibtn sm" aria-label=${'Remove '+i.title} onClick=${()=>A.updTrip(trip.id,t=>({...t,itinerary:t.itinerary.filter(x=>x.id!==i.id)}))}><${Ic} n="x" s=${16}/></button></div>`)}</div>`):html`<div className="card"><${Empty} t="No plans yet" s="Add flights, visits and events day by day."/></div>`}</div>`:null}
+  ${tab==='bookings'?html`<div className="stack"><div><button className="btn sm pri" onClick=${()=>U.open('booking',{trip:trip.id})}><${Ic} n="plus" s=${16}/> Add booking</button></div>
+   <div className="card flush">${trip.bookings.length?html`<div className="list">${trip.bookings.map(b=>html`<div key=${b.id} className="item"><div className="body"><div className="tt">${b.title}</div><div className="cap muted">${b.type}</div></div><span className="amt">${money(b.cost,cur)}</span>
+    <button className=${'btn sm '+(b.paid?'soft':'')} aria-pressed=${b.paid} onClick=${()=>A.togglePaid(trip.id,b.id)}>${b.paid?'Paid':'Mark paid'}</button>
+    <button className="ibtn sm" aria-label=${'Remove '+b.title} onClick=${()=>A.removeBooking(trip.id,b.id)}><${Ic} n="trash" s=${18}/></button></div>`)}</div>`:html`<${Empty} t="No bookings" s="Add flights, stays and transport."/>`}</div>
+   <p className="note">Marking a booking paid adds it to your expenses. Marking it unpaid removes that expense.</p></div>`:null}
+  ${tab==='checklist'?html`<div className="card flush"><form className="rowf" style=${{padding:12}} onSubmit=${e=>{e.preventDefault();if(!ci.trim())return;A.updTrip(trip.id,t=>({...t,checklist:[...t.checklist,{id:uid(),text:ci.trim(),done:false}]}));setCi('')}}>
+    <label className="sr" htmlFor="newchk">New checklist item</label><input id="newchk" className="in" style=${{flex:1,minWidth:140}} value=${ci} onChange=${e=>setCi(e.target.value)} placeholder="Add an item"/><button className="btn pri" type="submit">Add</button></form>
+   <div className="list">${trip.checklist.map(c=>html`<div key=${c.id} className=${'item'+(c.done?' done':'')}><button className="tickwrap" role="checkbox" aria-checked=${c.done} aria-label=${c.text} onClick=${()=>A.updTrip(trip.id,t=>({...t,checklist:t.checklist.map(x=>x.id===c.id?{...x,done:!x.done}:x)}))}><span className="tick" aria-checked=${c.done}><${Ic} n="check" s=${16}/></span></button>
+    <div className="body"><div className="tt">${c.text}</div></div><button className="ibtn sm" aria-label=${'Remove '+c.text} onClick=${()=>A.updTrip(trip.id,t=>({...t,checklist:t.checklist.filter(x=>x.id!==c.id)}))}><${Ic} n="x" s=${16}/></button></div>`)}</div></div>`:null}</div>`}
+
+/* ---------- Reminders ---------- */
+function Reminders({S,A,U}){
+ const T=today();const act=S.reminders.filter(r=>!r.done);
+ const od=act.filter(r=>r.date<T),up=act.filter(r=>r.date>=T&&r.repeat==='none'),rec=act.filter(r=>r.date>=T&&r.repeat!=='none'),dn=S.reminders.filter(r=>r.done);
+ const sort=a=>[...a].sort((x,y)=>(x.date+x.time)<(y.date+y.time)?-1:1);
+ const row=r=>html`<div key=${r.id} className=${'item'+(r.done?' done':'')}><button className="tickwrap" role="checkbox" aria-checked=${r.done} aria-label=${(r.done?'Not done: ':'Done: ')+r.title} onClick=${()=>A.completeReminder(r.id)}><span className="tick" aria-checked=${r.done}><${Ic} n="check" s=${16}/></span></button>
+  <div className="body"><div className="tt">${r.title}</div><div className="rowf cap muted" style=${{gap:6}}><span className="num">${rel(r.date)} ${r.time}</span>${r.repeat!=='none'?html`<span className="pill pri"><${Ic} n="repeat" s=${12}/> ${r.repeat==='daily'?'Daily':r.repeat==='weekly'?'Weekly':'Monthly'}</span>`:null}${r.important?html`<span className="pill warn">Important</span>`:null}</div></div>
+  <button className="ibtn sm" aria-label=${'Delete '+r.title} onClick=${()=>A.deleteReminder(r.id)}><${Ic} n="trash" s=${18}/></button></div>`;
+ const sec=(t,a,e)=>html`<div className="card flush"><h2 style=${{padding:'14px 16px 0'}}>${t}</h2>${a.length?html`<div className="list">${sort(a).map(row)}</div>`:html`<p className="small muted" style=${{padding:'4px 16px 16px'}}>${e}</p>`}</div>`;
+ return html`<div className="stack" style=${{gap:'16px'}}><div className="rowf" style=${{justifyContent:'space-between'}}><p className="muted">Alerts appear here and in the bell while this page is open. Nothing is sent by email or push.</p><button className="btn pri" onClick=${()=>U.open('reminder')}><${Ic} n="plus" s=${18}/> New reminder</button></div>
+  ${od.length?sec('Overdue',od,''):null}${sec('Upcoming',up,'No one-off reminders coming up.')}${sec('Recurring',rec,'No repeating reminders.')}${dn.length?sec('Completed',dn,''):null}</div>`}
+
+/* ---------- Settings ---------- */
+function Settings({S,A,U}){
+ const st=S.settings;const [conf,setConf]=useState(false);const [cp,setCp]=useState('');
+ const Sw=(k,l,d)=>html`<div className="sw"><div><div style=${{fontWeight:500}}>${l}</div><div className="cap muted">${d}</div></div><button role="switch" aria-checked=${!!st.notif[k]} aria-label=${l} onClick=${()=>A.setSettings({notif:{...st.notif,[k]:!st.notif[k]}})}></button></div>`;
+ return html`<div className="grid2"><div className="col">
+  <div className="card stack"><h2>Profile and preferences</h2><div className="field"><label htmlFor="nm">First name</label><input id="nm" className="in" value=${st.name} onChange=${e=>A.setSettings({name:e.target.value})}/></div>
+   <div className="formgrid"><div className="field"><label htmlFor="cu">Currency</label><select id="cu" className="in" value=${st.currency} onChange=${e=>A.setSettings({currency:e.target.value})}>${Object.keys(SYM).map(c=>html`<option key=${c} value=${c}>${SYM[c]} ${c}</option>`)}</select></div>
+   <div className="field"><label htmlFor="wk">Week starts on</label><select id="wk" className="in" value=${st.weekStart} onChange=${e=>A.setSettings({weekStart:+e.target.value})}><option value="1">Monday</option><option value="0">Sunday</option><option value="6">Saturday</option></select></div></div>
+   <p className="note">Changing currency only changes the symbol. Amounts are not converted.</p></div>
+  <div className="card"><h2>Appearance</h2><div className="rowf">${[['system','System','sun'],['light','Light','sun'],['dark','Dark','moon']].map(t=>html`<button key=${t[0]} className="chip" aria-pressed=${st.theme===t[0]} onClick=${()=>A.setSettings({theme:t[0]})}><${Ic} n=${t[2]} s=${16}/> ${t[1]}</button>`)}</div>
+   <div className="sw" style=${{marginTop:10}}><div><div style=${{fontWeight:500}}>Reduce motion</div><div className="cap muted">Turns off animations in the app</div></div><button role="switch" aria-checked=${st.reduceMotion} aria-label="Reduce motion" onClick=${()=>A.setSettings({reduceMotion:!st.reduceMotion})}></button></div></div></div>
+  <div className="col"><div className="card"><h2>Notifications</h2>${Sw("reminders","Reminder alerts","Show due reminders in the bell")}${Sw("digest","Morning summary","Preference saved only. Email is not connected.")}${Sw("assistant","Assistant suggestions","Show suggestions on Home")}</div>
+  <div className="card stack"><h2>Your data</h2><p className="small muted">Everything is stored in this browser only. There is no account, server or sync yet.</p>
+   <div className="rowf"><button className="btn" onClick=${()=>{const j=JSON.stringify(S,null,2);try{navigator.clipboard.writeText(j).then(()=>U.toast('Data copied to clipboard'),()=>setCp(j))}catch(e){setCp(j)}}}>Copy data as JSON</button>
+   <button className="btn" onClick=${()=>{A.reset(true);U.toast('Sample data restored')}}>Restore sample data</button>
+   ${!conf?html`<button className="btn danger" onClick=${()=>setConf(true)}>Clear everything</button>`:html`<button className="btn danger" onClick=${()=>{A.reset(false);setConf(false);U.toast('All data cleared')}}>Yes, clear everything</button><button className="btn" onClick=${()=>setConf(false)}>Keep it</button>`}</div>
+   ${cp?html`<div className="field"><label htmlFor="cpt">Select and copy</label><textarea id="cpt" className="in" style=${{minHeight:120,padding:8}} readOnly value=${cp} onFocus=${e=>e.target.select()}></textarea></div>`:null}</div>
+  <p className="cap muted">Lifelyn is a front-end prototype. Email, push, real AI, bank data and bookings are not connected.</p></div></div>`}
+
+/* ---------- App shell ---------- */
+const NAV=[['home','Home','home','Today'],['assistant','Assistant','spark','Today'],['planner','Planner','cal','Plan'],['reminders','Reminders','bell','Plan'],['budget','Budget','wallet','Money and travel'],['travel','Travel','plane','Money and travel'],['prefs','Settings','gear','You']];
+const TITLES={home:'Home',assistant:'Assistant',planner:'Planner',reminders:'Reminders',budget:'Budget',travel:'Travel',prefs:'Settings'};
+const getRoute=()=>{const h=(location.hash||'').slice(1);return NAV.some(n=>n[0]===h)?h:'home'};
+
+function App(){
+ const [S,setS]=useState(load);const [route,setRoute]=useState(getRoute);const [sheet,setSheet]=useState(null);const [toast,setToast]=useState(null);
+ const [seedQ,setSeedQ]=useState('');const [sel,setSel]=useState(null);const tt=useRef();
+ useEffect(()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}},[S]);
+ useEffect(()=>{const r=document.documentElement;if(S.settings.theme==='system')r.removeAttribute('data-theme');else r.setAttribute('data-theme',S.settings.theme)},[S.settings.theme]);
+ useEffect(()=>{const h=()=>setRoute(getRoute());window.addEventListener('hashchange',h);return()=>window.removeEventListener('hashchange',h)},[]);
+ const say=(msg,undo)=>{setToast({msg,undo});clearTimeout(tt.current);tt.current=setTimeout(()=>setToast(null),6000)};
+ const go=(r,x)=>{if(r==='assistant')setSeedQ(x||'');if(r==='travel')setSel(x||null);location.hash=r;setRoute(r);setSheet(null);window.scrollTo(0,0)};
+ const upd=f=>setS(s=>f(s));
+ const A={
+  setSettings:p=>upd(s=>({...s,settings:{...s.settings,...p}})),
+  chat:f=>upd(s=>({...s,chat:f(s.chat).slice(-40)})),
+  addTask:(d,quiet)=>{const id=uid();upd(s=>({...s,tasks:[...s.tasks,{id,title:d.title,due:d.due||today(),priority:d.priority||'med',done:false,amount:d.amount?+d.amount:undefined}]}));if(!quiet)say('Task added');return id},
+  toggleTask:id=>{const t=S.tasks.find(x=>x.id===id);upd(s=>({...s,tasks:s.tasks.map(x=>x.id===id?{...x,done:!x.done}:x)}));if(t&&!t.done)say('Done: '+t.title,()=>upd(s=>({...s,tasks:s.tasks.map(x=>x.id===id?{...x,done:false}:x)})))},
+  deleteTask:(id,quiet)=>{const t=S.tasks.find(x=>x.id===id);upd(s=>({...s,tasks:s.tasks.filter(x=>x.id!==id)}));if(!quiet&&t)say('Task deleted',()=>upd(s=>({...s,tasks:[...s.tasks,t]})))},
+  addTx:(d,quiet)=>{const id=uid();upd(s=>({...s,expenses:[...s.expenses,{id,type:d.type||'expense',title:d.title,amount:+d.amount,cat:d.type==='income'?'Income':(d.cat||'Other'),date:d.date||today()}]}));if(!quiet)say('Transaction added');return id},
+  deleteTx:(id,quiet)=>{const e=S.expenses.find(x=>x.id===id);upd(s=>({...s,expenses:s.expenses.filter(x=>x.id!==id),trips:e&&e.booking?s.trips.map(t=>({...t,bookings:t.bookings.map(b=>b.id===e.booking?{...b,paid:false}:b)})):s.trips}));if(!quiet&&e)say('Transaction deleted',()=>upd(s=>({...s,expenses:[...s.expenses,e]})))},
+  setAlloc:(c,v)=>upd(s=>({...s,alloc:{...s.alloc,[c]:v}})),
+  addReminder:(d,quiet)=>{const id=uid();upd(s=>({...s,reminders:[...s.reminders,{id,title:d.title,date:d.date||today(),time:d.time||'09:00',repeat:d.repeat||'none',important:!!d.important,done:false}]}));if(!quiet)say('Reminder set');return id},
+  deleteReminder:(id,quiet)=>{upd(s=>({...s,reminders:s.reminders.filter(x=>x.id!==id)}));if(!quiet)say('Reminder deleted')},
+  completeReminder:id=>upd(s=>({...s,reminders:s.reminders.map(r=>{if(r.id!==id)return r;if(r.done)return {...r,done:false};if(r.repeat==='none')return {...r,done:true};
+    const n=r.repeat==='daily'?1:r.repeat==='weekly'?7:30;let d=addDays(r.date,n);while(d<today())d=addDays(d,n);return {...r,date:d}})})),
+  addTrip:d=>{const id=uid();upd(s=>({...s,trips:[...s.trips,{id,name:d.name,dest:d.dest,start:d.start,end:d.end,budget:+d.budget||0,bookings:[],itinerary:[],checklist:[]}]}));return id},
+  deleteTrip:id=>upd(s=>({...s,trips:s.trips.filter(t=>t.id!==id),expenses:s.expenses.map(e=>e.trip===id?{...e,trip:undefined,booking:undefined}:e)})),
+  updTrip:(id,f)=>upd(s=>({...s,trips:s.trips.map(t=>t.id===id?f(t):t)})),
+  togglePaid:(tid,bid)=>upd(s=>{const t=s.trips.find(x=>x.id===tid),b=t.bookings.find(x=>x.id===bid);const paid=!b.paid;
+   return {...s,trips:s.trips.map(x=>x.id===tid?{...x,bookings:x.bookings.map(y=>y.id===bid?{...y,paid}:y)}:x),
+    expenses:paid?[...s.expenses,{id:uid(),type:'expense',title:b.title,amount:b.cost,cat:b.cat,date:today(),trip:tid,booking:bid}]:s.expenses.filter(e=>e.booking!==bid)}}),
+  removeBooking:(tid,bid)=>upd(s=>({...s,trips:s.trips.map(x=>x.id===tid?{...x,bookings:x.bookings.filter(y=>y.id!==bid)}:x),expenses:s.expenses.filter(e=>e.booking!==bid)})),
+  reset:withSample=>{const f=seed();setS(withSample?f:{...f,tasks:[],expenses:[],reminders:[],trips:[],alloc:{Flights:0,Stay:0,Transport:0,Food:0,'Gifts & shopping':0,Outfits:0,Other:0},chat:f.chat,settings:{...f.settings}})}};
+ const U={go,open:(type,ctx)=>setSheet({type,ctx:ctx||{}}),toast:say};
+ const T=today();const bell=(S.settings.notif.reminders?S.reminders.filter(r=>!r.done&&r.date<=T).length:0);
+ const cur=S.settings.currency,C=(sheet&&sheet.ctx)||{};
+ const close=()=>setSheet(null);
+ const catOpts=CATS.map(c=>[c,c]);
+ let sh=null;
+ if(sheet){const t=sheet.type;
+  if(t==='task')sh=html`<${Sheet} title="New task" onClose=${close}><${Form} submit="Add task" onCancel=${close} initial=${{due:C.date||T,priority:'med'}} fields=${[{k:'title',label:'What needs doing?',req:1,full:1},{k:'due',label:'Due',type:'date',req:1},{k:'priority',label:'Priority',options:[['med','Normal'],['high','High'],['low','Low']]},{k:'amount',label:'Amount, if it is a payment',type:'number'}]} onSubmit=${v=>{A.addTask(v);close()}}/><//>`;
+  if(t==='tx')sh=html`<${Sheet} title="Add transaction" onClose=${close}><${Form} submit="Add" onCancel=${close} initial=${{date:T,cat:'Food'}} fields=${[{k:'type',label:'Type',options:[['expense','Expense'],['income','Income']]},{k:'title',label:'Description',req:1},{k:'amount',label:'Amount ('+SYM[cur]+')',type:'number',req:1},{k:'cat',label:'Category (expenses)',options:catOpts},{k:'date',label:'Date',type:'date',req:1}]} onSubmit=${v=>{if(!(+v.amount>0))return;A.addTx(v);close()}}/><//>`;
+  if(t==='reminder')sh=html`<${Sheet} title="New reminder" onClose=${close}><${Form} submit="Set reminder" onCancel=${close} initial=${{date:T,time:'09:00'}} fields=${[{k:'title',label:'Remind me to',req:1,full:1},{k:'date',label:'Date',type:'date',req:1},{k:'time',label:'Time',type:'time',req:1},{k:'repeat',label:'Repeats',options:[['none','Does not repeat'],['daily','Daily'],['weekly','Weekly'],['monthly','Monthly']]},{k:'important',label:'Mark as important',type:'checkbox'}]} onSubmit=${v=>{A.addReminder(v);close()}}/><//>`;
+  if(t==='trip')sh=html`<${Sheet} title="New trip" onClose=${close}><${Form} submit="Create trip" onCancel=${close} initial=${{start:addDays(T,30),end:addDays(T,37)}} fields=${[{k:'name',label:'Trip name',req:1,full:1,ph:'Summer in Accra'},{k:'dest',label:'Destination',req:1,full:1},{k:'start',label:'Start',type:'date',req:1},{k:'end',label:'End',type:'date',req:1},{k:'budget',label:'Budget ('+SYM[cur]+')',type:'number'}]} onSubmit=${v=>{if(v.end<v.start){say('The end date must be after the start date');return}const id=A.addTrip(v);close();go('travel',id)}}/><//>`;
+  if(t==='booking')sh=html`<${Sheet} title="Add booking" onClose=${close}><${Form} submit="Add booking" onCancel=${close} fields=${[{k:'type',label:'Type',options:[['Flight','Flight'],['Stay','Accommodation'],['Transport','Transport'],['Other','Other']]},{k:'title',label:'Details',req:1},{k:'cost',label:'Cost ('+SYM[cur]+')',type:'number',req:1},{k:'paid',label:'Already paid',type:'checkbox'}]}
+   onSubmit=${v=>{const cat=v.type==='Flight'?'Flights':v.type==='Stay'?'Stay':v.type==='Transport'?'Transport':'Other';const b={id:uid(),type:v.type,title:v.title,cost:+v.cost||0,paid:false,cat};A.updTrip(C.trip,t=>({...t,bookings:[...t.bookings,b]}));if(v.paid)setTimeout(()=>A.togglePaid(C.trip,b.id),0);close()}}/><//>`;
+  if(t==='itin')sh=html`<${Sheet} title="Add plan" onClose=${close}><${Form} submit="Add" onCancel=${close} initial=${{date:C.date,time:'10:00'}} fields=${[{k:'title',label:'What is happening?',req:1,full:1},{k:'date',label:'Day',type:'date',req:1},{k:'time',label:'Time',type:'time',req:1}]} onSubmit=${v=>{A.updTrip(C.trip,t=>({...t,itinerary:[...t.itinerary,{id:uid(),...v}]}));close()}}/><//>`;
+  if(t==='menu')sh=html`<${Sheet} title="Menu" onClose=${close}><div className="stack">${[['reminders','Reminders','bell'],['prefs','Settings','gear']].map(n=>html`<button key=${n[0]} className="btn" style=${{justifyContent:'flex-start'}} onClick=${()=>go(n[0])}><${Ic} n=${n[2]}/> ${n[1]}</button>`)}
+   <button className="btn" style=${{justifyContent:'flex-start'}} onClick=${()=>{const dark=S.settings.theme==='dark'||(S.settings.theme==='system'&&matchMedia('(prefers-color-scheme: dark)').matches);A.setSettings({theme:dark?'light':'dark'})}}><${Ic} n="moon"/> Switch light and dark</button>
+   <p className="cap muted">Projects, Explore, Documents and Goals are not built in this prototype yet.</p></div><//>`}
+ const screen=route==='home'?html`<${Home} S=${S} A=${A} U=${U}/>`:route==='assistant'?html`<${Assistant} S=${S} A=${A} U=${U} seedQ=${seedQ}/>`:route==='planner'?html`<${Planner} S=${S} A=${A} U=${U}/>`
+  :route==='budget'?html`<${Budget} S=${S} A=${A} U=${U}/>`:route==='travel'?html`<${Travel} S=${S} A=${A} U=${U} sel=${sel} setSel=${setSel}/>`:route==='reminders'?html`<${Reminders} S=${S} A=${A} U=${U}/>`:html`<${Settings} S=${S} A=${A} U=${U}/>`;
+ const groups=[...new Set(NAV.map(n=>n[3]))];
+ const tabs=['home','planner','assistant','budget','travel'];
+ const nb=n=>html`<${React.Fragment} key=${n[0]}>${nav1(n)}<//>`;
+ const nav1=n=>html`<button className="nav" aria-current=${route===n[0]?'page':undefined} onClick=${()=>go(n[0])}><${Ic} n=${n[2]}/><span className="lbl">${n[1]}</span>${n[0]==='reminders'&&bell?html`<span className="badge" aria-label=${bell+' due'}>${bell}</span>`:null}</button>`;
+ return html`<div className=${'app'+(S.settings.reduceMotion?' rm':'')}>
+  <nav className="side" aria-label="Main"><div className="brand"><span className="mark"><${Ic} n="spark" s=${18}/></span><span>Lifelyn</span></div>
+   ${groups.map(g=>html`<${React.Fragment} key=${g}><div className="grp">${g}</div>${NAV.filter(n=>n[3]===g).map(nb)}<//>`)}<div className="sp"></div></nav>
+  <main className="main"><div className="wrap">
+   <header className="top"><div className="t">${route==='home'?html`<span className="faint small">Lifelyn · sample data, saved in this browser</span>`:html`<h1>${TITLES[route]}</h1>`}</div>
+    <div className="tools"><button className="ibtn" aria-label=${bell?bell+' reminders due':'Reminders'} onClick=${()=>go('reminders')} style=${{position:'relative'}}><${Ic} n="bell"/>${bell?html`<span className="badge" style=${{position:'absolute',top:-6,right:-6,margin:0,transform:'none'}}>${bell}</span>`:null}</button>
+     <button className="ibtn" aria-label="Open menu" onClick=${()=>U.open('menu')}><${Ic} n="menu"/></button></div></header>
+   ${screen}</div></main>
+  <nav className="bottom" aria-label="Main">${tabs.map(id=>nb(NAV.find(n=>n[0]===id)))}</nav>
+  ${sh}${toast?html`<div className="toast" role="status"><span>${toast.msg}</span>${toast.undo?html`<button onClick=${()=>{toast.undo();setToast(null)}}>Undo</button>`:null}</div>`:null}</div>`}
+ReactDOM.createRoot(document.getElementById('root')).render(html`<${App}/>`);
+</script>
