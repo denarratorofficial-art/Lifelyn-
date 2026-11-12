@@ -80,7 +80,7 @@ h3{font-size:1rem;font-weight:600}
 @media (max-width:1023px){
  .app{grid-template-columns:76px minmax(0,1fr)}
  .side{padding:16px 8px;align-items:stretch}
- .side .lbl,.side .grp,.brand span:last-child{display:none}
+ .side .grp,.brand span:last-child{display:none}
  .nav{flex-direction:column;gap:2px;justify-content:center;font-size:.72rem;padding:8px 2px;text-align:center}
  .brand{justify-content:center;padding:4px 0 12px}
  .badge{position:absolute;margin:0;transform:translate(14px,-14px)}
@@ -237,6 +237,13 @@ h3{font-size:1rem;font-weight:600}
 .sw button[aria-checked="true"]{background:var(--primary);border-color:var(--primary)}
 .sw button[aria-checked="true"]::after{transform:translateX(20px);background:var(--on-primary)}
 .note{font-size:.8125rem;color:var(--t2);background:var(--sunken);border-radius:10px;padding:8px 12px}
+.cardgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,280px),1fr));gap:14px}
+.nested{margin-left:20px;border-left:2px solid var(--line)}
+.map{height:min(340px,52vh);min-height:220px;border-radius:12px;border:1px solid var(--line);overflow:hidden;background:var(--sunken);z-index:0;position:relative}
+.leaflet-container{font:inherit}
+.ev.m{background:var(--warn-soft)}
+details summary{list-style:revert}
+a.btn{text-decoration:none;color:inherit}
 </style>
 <style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 body{margin:0;font-size:16px}[hidden]{display:none!important}</style>
@@ -269,7 +276,7 @@ const startOfWeek=(s,ws)=>{const d=parse(s);const k=(d.getDay()-ws+7)%7;return a
 const CATS=['Flights','Stay','Transport','Food','Gifts & shopping','Outfits','Other'];
 
 /* ---------- sample data (clearly sample) ---------- */
-function seed(){
+function seed0(){
  const T=today(),trip='trip1';
  const task=(title,d,pr,x)=>({id:uid(),title,due:d,priority:pr||'med',done:false,...x});
  return {v:1,
@@ -325,8 +332,18 @@ function seed(){
    {id:uid(),text:'Pack outfits and gifts',done:false}]}],
  chat:[{id:uid(),role:'a',text:"Hello. I can add tasks, log spending and set reminders from a sentence. Anything that changes your data comes to you first as a card to approve."}]};
 }
+
+function ext(s){const T=today(),pid='proj1';
+ if(!s.projects){s.projects=[{id:pid,name:'Lagos wedding',desc:'Everything for the wedding trip: payments, outfits, gifts and family visits.',start:addDays(T,-25),deadline:addDays(T,21),priority:'high',status:'active',budget:2400,notes:'Sample project. Tasks, spending and reminders linked to the trip show up here.',
+  milestones:[{id:uid(),title:'Flights booked',date:addDays(T,-20),done:true},{id:uid(),title:'Hotel paid',date:addDays(T,2),done:false},{id:uid(),title:'Outfits ready',date:addDays(T,9),done:false}]}];
+  s.tasks=s.tasks.map(t=>t.trip==='trip1'?{...t,project:pid}:t);s.expenses=s.expenses.map(e=>e.trip==='trip1'?{...e,project:pid}:e);s.reminders=s.reminders.map(r=>r.title==='Pay hotel deposit'?{...r,project:pid}:r)}
+ if(!s.goals)s.goals=[{id:'goal1',title:'Save for the Lagos trip',why:'Cover the trip without borrowing.',target:2400,unit:s.settings.currency,current:1650,deadline:addDays(T,10),done:false,
+  milestones:[{id:uid(),title:'Reach half way',done:true},{id:uid(),title:'Pay the hotel deposit',done:false}],log:[{id:uid(),date:addDays(T,-14),delta:900,total:900},{id:uid(),date:addDays(T,-6),delta:750,total:1650}]}];
+ if(!s.habits){const logs={};[1,2,3,5,6].forEach(i=>logs[addDays(T,-i)]=true);s.habits=[{id:'hab1',title:'Walk for 20 minutes',goal:'',perWeek:5,logs,created:addDays(T,-20)}]}
+ if(!s.docs)s.docs=[];if(!s.places)s.places=[];return s}
+function seed(){return ext(seed0())}
 const KEY='lifelyn-demo-v1';
-function load(){try{const r=localStorage.getItem(KEY);if(r){const s=JSON.parse(r);if(s&&s.v===1)return s}}catch(e){}return seed()}
+function load(){try{const r=localStorage.getItem(KEY);if(r){const s=JSON.parse(r);if(s&&s.v===1)return ext(s)}}catch(e){}return seed()}
 
 /* ---------- icons ---------- */
 const P={home:'M3 11l9-8 9 8v10a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z',cal:'M7 3v4M17 3v4M4 9h16M5 5h14a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z',
@@ -334,7 +351,7 @@ const P={home:'M3 11l9-8 9 8v10a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z',cal:'M
  plane:'M3 11l18-8-8 18-2-8z',bell:'M6 9a6 6 0 0 1 12 0c0 6 2 7 2 7H4s2-1 2-7zM10 20a2 2 0 0 0 4 0',gear:'M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8zM12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2',
  plus:'M12 5v14M5 12h14',check:'M5 12l5 5 9-10',x:'M6 6l12 12M18 6L6 18',l:'M15 5l-7 7 7 7',r:'M9 5l7 7-7 7',send:'M4 12l16-8-6 16-3-7z',trash:'M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13',
  sun:'M12 7a5 5 0 1 0 0 10 5 5 0 0 0 0-10zM12 2v2M12 20v2M2 12h2M20 12h2',moon:'M20 14A8 8 0 0 1 10 4a8 8 0 1 0 10 10z',menu:'M4 6h16M4 12h16M4 18h16',list:'M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01',
- alert:'M12 4l9 16H3zM12 10v4M12 17h.01',repeat:'M17 2l3 3-3 3M4 11V9a4 4 0 0 1 4-4h12M7 22l-3-3 3-3M20 13v2a4 4 0 0 1-4 4H4'};
+ alert:'M12 4l9 16H3zM12 10v4M12 17h.01',repeat:'M17 2l3 3-3 3M4 11V9a4 4 0 0 1 4-4h12M7 22l-3-3 3-3M20 13v2a4 4 0 0 1-4 4H4',folder:'M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z',target:'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8zM12 12h.01',compass:'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM15.5 8.5l-2 5-5 2 2-5z',file:'M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8zM14 3v5h5M9 13h6M9 17h6',camera:'M4 8h3l2-3h6l2 3h3a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1zM12 10a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7z',upload:'M12 16V4M7 9l5-5 5 5M5 20h14'};
 const Ic=({n,s=20})=>html`<svg className="ic" width=${s} height=${s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d=${P[n]}/></svg>`;
 
 /* ---------- assistant: local rule-based parser (not Claude) ---------- */
@@ -355,7 +372,7 @@ function pCat(t){t=t.toLowerCase();
 function clean(t){let s=t.replace(/[£₦€$]\s?\d[\d,]*(\.\d+)?/g,'').replace(/\d[\d,]*(\.\d+)?\s?(pounds|quid|gbp|naira|euros?|dollars?)\b/gi,'')
  .replace(/\bat \d{1,2}(:\d{2})?\s?(am|pm)?\b/gi,'').replace(/\b(today|tonight|tomorrow|next week|in \d+ days?|on (sunday|monday|tuesday|wednesday|thursday|friday|saturday)|(sunday|monday|tuesday|wednesday|thursday|friday|saturday))\b/gi,'')
  .replace(/^\s*(please\s+)?(can you\s+)?(add|create|new|make|set|log|remind me to|remind me|i need to|i have to|i must|task:?|todo:?|a task to|task to|spent|paid|bought|received|got)\s+(a\s+|an\s+|the\s+)?/i,'')
- .replace(/^(on|for|to)\s+/i,'').replace(/\s+/g,' ').trim();return s?s[0].toUpperCase()+s.slice(1):''}
+ .replace(/^(a\s+)?(task|todo)\s*(to|:)?\s*/i,'').replace(/^(on|for|to)\s+/i,'').replace(/\s+/g,' ').trim();return s?s[0].toUpperCase()+s.slice(1):''}
 function interpret(text,S){
  const t=text.trim(),l=t.toLowerCase(),T=today(),cur=S.settings.currency;
  const open=S.tasks.filter(x=>!x.done);
@@ -367,14 +384,19 @@ function interpret(text,S){
  if(/overdue|late|behind/.test(l)){const od=open.filter(x=>x.due<T);return {text:od.length?'You have '+od.length+' overdue:\n'+od.map(x=>'• '+x.title+' ('+rel(x.due)+')').join('\n'):'Nothing is overdue.'}}
  if(/(what|show|list).*(today|due|on)|today.*(task|due)|my day/.test(l)){const d=pDate(t)||T;const tk=open.filter(x=>x.due===d);const rm=S.reminders.filter(r=>!r.done&&r.date===d);
   return {text:(tk.length+rm.length)?rel(d)+':\n'+tk.map(x=>'• '+x.title).concat(rm.map(r=>'• '+r.time+' '+r.title+' (reminder)')).join('\n'):'Nothing planned for '+rel(d).toLowerCase()+'.'}}
- if(/budget|left|spend|spent|money|afford/.test(l)){const tot=sum(Object.values(S.alloc)),sp=sum(S.expenses.filter(e=>e.type==='expense').map(e=>e.amount));
+ const cmd=/^\s*(please\s+)?(add|create|new|make|set|log)\b|\btask\b/.test(l);
+ if(!cmd&&/budget|left|spend|spent|money|afford/.test(l)){const tot=sum(Object.values(S.alloc)),sp=sum(S.expenses.filter(e=>e.type==='expense').map(e=>e.amount));
   const unpaid=sum(S.trips.flatMap(x=>x.bookings).filter(b=>!b.paid).map(b=>b.cost));
   return {text:'Budget '+money(tot,cur)+', spent '+money(sp,cur)+', left '+money(tot-sp,cur)+'.\nBookings still to pay: '+money(unpaid,cur)+', which leaves '+money(tot-sp-unpaid,cur)+' once they are paid.'}}
- if(/trip|wedding|lagos|travel|flight/.test(l)){const x=S.trips[0];if(!x)return {text:'You have no trips yet. Add one in Travel.'};
+ if(!cmd&&/trip|wedding|lagos|travel|flight/.test(l)){const x=S.trips[0];if(!x)return {text:'You have no trips yet. Add one in Travel.'};
   const un=x.bookings.filter(b=>!b.paid);return {text:x.name+' is in '+diff(x.start,T)+' days. '+x.checklist.filter(c=>c.done).length+' of '+x.checklist.length+' checklist items are done.\nStill to pay: '+money(sum(un.map(b=>b.cost)),cur)+(un.length?' ('+un.map(b=>b.title).join(', ')+')':'.')}}
- const title=clean(t);
+ const pj=S.projects.find(p=>p.status==='active'&&l.includes(p.name.toLowerCase()));
+ const pm=l.match(/(?:new|create|start|add)\s+(?:a\s+)?project\s*(?:called|named|for|:)?\s*(.+)/);
+ if(pm&&pm[1].trim().length>1){const nm=t.slice(l.indexOf(pm[1])).trim();return {text:'I can create this project. You can add tasks and milestones after.',proposals:[{kind:'project',data:{name:nm[0].toUpperCase()+nm.slice(1),desc:'',deadline:pDate(t)||''}}]}}
+ if(/\bprojects?\b/.test(l)){const ps=S.projects.filter(p=>p.status==='active');return {text:ps.length?'Active projects:\n'+ps.map(p=>'• '+p.name+' ('+pprog(S,p)+'%'+(p.deadline?', due '+rel(p.deadline):'')+')').join('\n'):'You have no active projects.'}}
+ let title=clean(t);if(pj)title=title.replace(new RegExp('\\s*(to|in|for|on)\\s+(the\\s+)?'+pj.name.toLowerCase().replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'.*$','i'),'').trim()||title;
  if(title&&title.length>2&&/(add|create|new|task|todo|need to|have to|must|buy|call|book|pay|send|pick|collect|renew|email|submit)/.test(l))
-  return {text:'I can add this task.',proposals:[{kind:'task',data:{title,due:pDate(t)||T,priority:/urgent|asap|important/.test(l)?'high':'med',amount:amt}}]};
+  return {text:'I can add this task.',proposals:[{kind:'task',data:{title,due:pDate(t)||T,priority:/urgent|asap|important/.test(l)?'high':'med',amount:amt,project:pj?pj.id:undefined}}]};
  return {text:"I didn't catch that. Try \"add task buy gifts on friday\", \"spent £20 on lunch\", \"remind me to call Aunty tomorrow at 6pm\", or ask \"what's due today?\"."}}
 
 /* ---------- small components ---------- */
@@ -391,24 +413,27 @@ function Form({fields,initial,submit,onSubmit,onCancel}){
   ${f.type==='checkbox'?html`<label className="chk"><input type="checkbox" id=${'f-'+f.k} checked=${!!v[f.k]} onChange=${e=>set(f.k,e.target.checked)}/> ${f.label}</label>`:html`
    <label htmlFor=${'f-'+f.k}>${f.label}</label>
    ${f.options?html`<select id=${'f-'+f.k} className="in" value=${v[f.k]} onChange=${e=>set(f.k,e.target.value)}>${f.options.map(o=>html`<option key=${o[0]} value=${o[0]}>${o[1]}</option>`)}</select>`
+   :f.type==='textarea'?html`<textarea id=${'f-'+f.k} className="in" style=${{minHeight:90,padding:10}} value=${v[f.k]} onChange=${e=>set(f.k,e.target.value)}></textarea>`
    :html`<input id=${'f-'+f.k} className="in" type=${f.type||'text'} step=${f.type==='number'?'0.01':undefined} min=${f.type==='number'?'0':undefined} required=${!!f.req} placeholder=${f.ph||''} value=${v[f.k]} onChange=${e=>set(f.k,e.target.value)}/>`}`}
   </div>`)}</div>
   <div className="rowf"><button type="submit" className="btn pri">${submit}</button><button type="button" className="btn" onClick=${onCancel}>Cancel</button></div></form>`}
 const Empty=({t,s,a})=>html`<div className="empty"><div className="disp">${t}</div><div className="small">${s}</div>${a}</div>`;
 const Bar=({v,max,over})=>html`<div className=${'bar'+(over?' over':'')} role="progressbar" aria-valuenow=${Math.round(v)} aria-valuemin="0" aria-valuemax=${Math.round(max)}><i style=${{width:Math.min(100,max>0?v/max*100:0)+'%'}}></i></div>`;
-function TaskRow({t,S,A,U}){const cur=S.settings.currency;const od=!t.done&&t.due<today();const tr=S.trips.find(x=>x.id===t.trip);
+function TaskRow({t,S,A,U}){const cur=S.settings.currency;const od=!t.done&&t.due<today();const tr=S.trips.find(x=>x.id===t.trip);const pj=S.projects.find(x=>x.id===t.project);
  return html`<div className=${'item'+(t.done?' done':'')}>
   <button className="tickwrap" role="checkbox" aria-checked=${t.done} aria-label=${(t.done?'Mark not done: ':'Mark done: ')+t.title} onClick=${()=>A.toggleTask(t.id)}><span className="tick" aria-checked=${t.done}><${Ic} n="check" s=${16}/></span></button>
   <div className="body"><div className="tt">${t.title}</div>
    <div className="rowf cap muted" style=${{gap:'6px'}}>${od?html`<span className="pill err"><${Ic} n="alert" s=${12}/> Overdue</span>`:null}<span>${rel(t.due)}</span>
-    ${t.priority==='high'?html`<span className="pill acc">High priority</span>`:null}${t.amount?html`<span className="num">${money(t.amount,cur)}</span>`:null}${tr?html`<span className="pill pri">${tr.name}</span>`:null}</div></div>
+    ${t.priority==='high'?html`<span className="pill acc">High priority</span>`:null}${t.amount?html`<span className="num">${money(t.amount,cur)}</span>`:null}${pj?html`<span className="pill pri">${pj.name}</span>`:tr?html`<span className="pill pri">${tr.name}</span>`:null}${t.parent?html`<span className="pill">Subtask</span>`:null}</div></div>
   <button className="ibtn sm" aria-label=${'Delete '+t.title} onClick=${()=>A.deleteTask(t.id)}><${Ic} n="trash" s=${18}/></button></div>`}
 
 /* ---------- derived helpers ---------- */
 const itemsOn=(S,d)=>[
  ...S.tasks.filter(t=>t.due===d).map(t=>({k:'t',id:t.id,title:t.title,done:t.done,time:''})),
  ...S.reminders.filter(r=>r.date===d&&(!r.done||r.repeat!=='none')).map(r=>({k:'r',id:r.id,title:r.title,done:false,time:r.time})),
- ...S.trips.flatMap(x=>x.itinerary.filter(i=>i.date===d).map(i=>({k:'i',id:i.id,title:i.title+' ('+x.name+')',done:false,time:i.time})))];
+ ...S.trips.flatMap(x=>x.itinerary.filter(i=>i.date===d).map(i=>({k:'i',id:i.id,title:i.title+' ('+x.name+')',done:false,time:i.time}))),
+ ...S.projects.filter(p=>p.status==='active').flatMap(p=>[...(p.milestones||[]).filter(m=>m.date===d).map(m=>({k:'m',id:m.id,title:'Milestone: '+m.title+' ('+p.name+')',done:m.done,time:''})),...(p.deadline===d?[{k:'m',id:p.id+'dl',title:'Project deadline: '+p.name,done:false,time:''}]:[])]),
+ ...S.goals.filter(g=>g.deadline===d&&!g.done).map(g=>({k:'m',id:g.id+'dl',title:'Goal due: '+g.title,done:false,time:''}))];
 const spentTotal=S=>sum(S.expenses.filter(e=>e.type==='expense').map(e=>e.amount));
 const allocTotal=S=>sum(Object.values(S.alloc));
 const unpaidAll=S=>sum(S.trips.flatMap(x=>x.bookings).filter(b=>!b.paid).map(b=>b.cost));
@@ -426,7 +451,7 @@ function Home({S,A,U}){
  const left=allocTotal(S)-spentTotal(S);const recent=[...S.expenses].sort((a,b)=>a.date<b.date?1:-1).slice(0,3);
  const imp=S.reminders.filter(r=>!r.done&&r.important&&diff(r.date,T)<=7);
  const ask=e=>{e.preventDefault();if(!q.trim())return;U.go('assistant',q.trim());setQ('')};
- const unpaid=trip?trip.bookings.filter(b=>!b.paid):[];
+ const unpaid=trip?trip.bookings.filter(b=>!b.paid):[];const projs=S.projects.filter(p=>p.status==='active').slice(0,3);
  return html`<div className="stack" style=${{gap:'20px'}}>
  <div className="hero"><div><h1 className="disp hello">${hi}, ${S.settings.name}</h1>
   <p className="muted">${fmt(T,{weekday:'long',day:'numeric',month:'long'})}${trip?html` · <b>${diff(trip.start,T)>0?diff(trip.start,T)+' days to '+trip.name:trip.name+' is under way'}</b>`:''}</p></div>
@@ -437,8 +462,9 @@ function Home({S,A,U}){
   ${(overdue.length+od2.length)>0?html`<button className="strip" onClick=${()=>U.go('planner')}><${Ic} n="alert"/><div className="tx"><b>${overdue.length+od2.length} overdue</b><div className="small">${overdue.slice(0,2).map(x=>x.title).concat(od2.slice(0,1).map(r=>r.title)).slice(0,2).join(' · ')}</div></div><${Ic} n="r"/></button>`:null}
   <div className="card flush"><div className="shead" style=${{padding:'14px 16px 0'}}><h2>Today</h2><button className="btn sm soft" onClick=${()=>U.open('task',{date:T})}><${Ic} n="plus" s=${16}/> Add task</button></div>
    ${dueToday.length?html`<div className="list">${dueToday.map(t=>html`<${TaskRow} key=${t.id} t=${t} S=${S} A=${A} U=${U}/>`)}</div>`:html`<${Empty} t="A clear day" s="Nothing is due today. Add a task or ask the assistant."/>`}</div>
+  ${S.habits.length?html`<div className="card"><div className="shead"><h2>Habits today</h2><button className="link" onClick=${()=>U.go('goals')}>Open</button></div>${S.habits.map(h=>html`<div key=${h.id} className="rowf small" style=${{justifyContent:'space-between',flexWrap:'nowrap',minHeight:44}}><span style=${{minWidth:0,overflowWrap:'anywhere'}}>${h.title} <span className="faint">· ${streak(h)} day streak</span></span><button className=${'btn sm '+(h.logs[T]?'soft':'')} aria-pressed=${!!h.logs[T]} onClick=${()=>A.toggleHabit(h.id,T)}>${h.logs[T]?'Done':'Check in'}</button></div>`)}</div>`:null}
   <div className="card"><div className="shead"><h2>Coming up</h2><button className="link" onClick=${()=>U.go('planner')}>Open planner</button></div>
-   ${upcoming.length?html`<div className="stack" style=${{gap:'8px'}}>${upcoming.slice(0,6).map(x=>html`<div key=${x.k+x.id} className="rowf small"><span className=${'pill '+(x.k==='r'?'acc':x.k==='i'?'warn':'pri')} style=${{minWidth:70,justifyContent:'center'}}>${rel(x.d)}</span><span style=${{flex:1,minWidth:0,overflowWrap:'anywhere'}}>${x.title}</span><span className="faint num">${x.time}</span></div>`)}</div>`:html`<p className="muted small">Nothing in the next 7 days.</p>`}</div>
+   ${upcoming.length?html`<div className="stack" style=${{gap:'8px'}}>${upcoming.slice(0,6).map(x=>html`<div key=${x.k+x.id} className="rowf small"><span className=${'pill '+(x.k==='r'?'acc':(x.k==='i'||x.k==='m')?'warn':'pri')} style=${{minWidth:70,justifyContent:'center'}}>${rel(x.d)}</span><span style=${{flex:1,minWidth:0,overflowWrap:'anywhere'}}>${x.title}</span><span className="faint num">${x.time}</span></div>`)}</div>`:html`<p className="muted small">Nothing in the next 7 days.</p>`}</div>
  </div><div className="col">
   ${trip?html`<button className="tripcard" onClick=${()=>U.go('travel',trip.id)}><div className="rowf" style=${{justifyContent:'space-between'}}><h2 style=${{margin:0}}>${trip.name}</h2><span className="pill acc">${diff(trip.start,T)>0?diff(trip.start,T)+' days to go':'Under way'}</span></div>
    <div className="small muted num">${trip.checklist.filter(c=>c.done).length} of ${trip.checklist.length} checklist items done</div><${Bar} v=${trip.checklist.filter(c=>c.done).length} max=${Math.max(1,trip.checklist.length)}/>
@@ -447,6 +473,7 @@ function Home({S,A,U}){
    <div className="big num" style=${{color:left<0?'var(--err)':'var(--t1)'}}>${money(left,cur)}</div><div className="small muted">${left<0?'over budget':'left to spend'} of <span className="num">${money(allocTotal(S),cur)}</span></div>
    <div style=${{margin:'10px 0'}}><${Bar} v=${spentTotal(S)} max=${allocTotal(S)} over=${left<0}/></div>
    ${recent.map(e=>html`<div key=${e.id} className="rowf small" style=${{justifyContent:'space-between',flexWrap:'nowrap'}}><span style=${{minWidth:0,overflowWrap:'anywhere'}}>${e.title}</span><span className=${'amt '+(e.type==='income'?'pos':'')}>${e.type==='income'?'+':'−'}${money(e.amount,cur).replace('−','')}</span></div>`)}</div>
+  ${projs.length?html`<div className="card"><div className="shead"><h2>Active projects</h2><button className="link" onClick=${()=>U.go('projects')}>Open</button></div><div className="stack" style=${{gap:'10px'}}>${projs.map(p=>html`<button key=${p.id} className="rowf" style=${{background:'none',border:0,padding:0,textAlign:'left',width:'100%',display:'block'}} onClick=${()=>U.go('projects',p.id)}><div className="rowf small" style=${{justifyContent:'space-between',flexWrap:'nowrap'}}><b>${p.name}</b><span className="num muted">${pprog(S,p)}%</span></div><${Bar} v=${pprog(S,p)} max=${100}/></button>`)}</div></div>`:null}
   ${imp.length?html`<div className="card"><h2>Important reminders</h2>${imp.map(r=>html`<div key=${r.id} className="rowf small" style=${{justifyContent:'space-between'}}><span>${r.title}</span><span className="pill warn">${rel(r.date)} ${r.time}</span></div>`)}</div>`:null}
  </div></div></div>`}
 
@@ -459,14 +486,15 @@ function Assistant({S,A,U,seedQ}){
  useEffect(()=>{if(end.current)end.current.scrollIntoView({block:'end'})},[S.chat.length,busy]);
  const setP=(mid,pid,patch)=>A.chat(ms=>ms.map(m=>m.id===mid?{...m,proposals:m.proposals.map(p=>p.id===pid?{...p,...patch}:p)}:m));
  const approve=(m,p)=>{const d=p.data;let cid;
-  if(p.kind==='task')cid=A.addTask({title:d.title,due:d.due,priority:d.priority,amount:d.amount||undefined},true);
+  if(p.kind==='task')cid=A.addTask({...d,amount:d.amount||undefined},true);if(p.kind==='project')cid=A.addProject(d,true);
   if(p.kind==='tx')cid=A.addTx(d,true);if(p.kind==='reminder')cid=A.addReminder(d,true);setP(m.id,p.id,{status:'applied',cid})};
- const undo=(m,p)=>{if(p.kind==='task')A.deleteTask(p.cid,true);if(p.kind==='tx')A.deleteTx(p.cid,true);if(p.kind==='reminder')A.deleteReminder(p.cid,true);setP(m.id,p.id,{status:'undone'})};
+ const undo=(m,p)=>{if(p.kind==='task')A.deleteTask(p.cid,true);if(p.kind==='tx')A.deleteTx(p.cid,true);if(p.kind==='reminder')A.deleteReminder(p.cid,true);if(p.kind==='project')A.deleteProject(p.cid,true);setP(m.id,p.id,{status:'undone'})};
  const rows=p=>{const d=p.data,c=S.settings.currency;
-  if(p.kind==='task')return [['Task',d.title],['Due',rel(d.due)],['Priority',d.priority==='high'?'High':'Normal']].concat(d.amount?[['Amount',money(d.amount,c)]]:[]);
+  if(p.kind==='task')return [['Task',d.title],['Due',rel(d.due)],['Priority',d.priority==='high'?'High':'Normal']].concat(d.amount?[['Amount',money(d.amount,c)]]:[]).concat(d.project&&S.projects.find(x=>x.id===d.project)?[['Project',S.projects.find(x=>x.id===d.project).name]]:[]);
+  if(p.kind==='project')return [['Project',d.name]].concat(d.deadline?[['Deadline',rel(d.deadline)]]:[]);
   if(p.kind==='tx')return [[d.type==='income'?'Income':'Expense',d.title],['Amount',money(d.amount,c)],['Category',d.cat],['Date',rel(d.date)]];
   return [['Reminder',d.title],['When',rel(d.date)+' at '+d.time],['Repeats',d.repeat==='none'?'No':d.repeat]]};
- const label={task:'Add task',tx:'Add transaction',reminder:'Set reminder'};
+ const label={task:'Add task',tx:'Add transaction',reminder:'Set reminder',project:'Create project'};
  return html`<div className="stack"><div className="note">This assistant runs on simple rules inside this page. It is not connected to Claude or any server. The approval cards show how the real assistant will ask before it changes anything.</div>
   <div className="msgs" role="log" aria-live="polite">
    ${S.chat.map(m=>html`<${React.Fragment} key=${m.id}><div className=${'m '+m.role}>${m.text}</div>
@@ -476,7 +504,7 @@ function Assistant({S,A,U,seedQ}){
       ${p.status==='pending'?html`<div className="rowf"><button className="btn pri sm" onClick=${()=>approve(m,p)}><${Ic} n="check" s=${16}/> Approve</button><button className="btn sm" onClick=${()=>setP(m.id,p.id,{status:'rejected'})}>Reject</button></div>`:null}
       ${p.status==='applied'?html`<button className="btn sm" onClick=${()=>undo(m,p)}><${Ic} n="undo" s=${16}/> Undo</button>`:null}</div>`)}<//>`)}
    ${busy?html`<div className="m a" aria-label="Assistant is thinking"><span className="think"><i></i><i></i><i></i></span></div>`:null}<div ref=${end}></div></div>
-  <div className="compose"><div className="sugg" style=${{marginBottom:8}}>${["What's due today?","Add task buy gifts on friday","Spent £20 on lunch","Remind me to call Aunty tomorrow at 6pm","How much is left in my budget?"].map(s=>html`<button key=${s} className="chip" onClick=${()=>send(s)}>${s}</button>`)}</div>
+  <div className="compose"><div className="sugg" style=${{marginBottom:8}}>${["What's due today?","Add task buy gifts on friday","Spent £20 on lunch","Remind me to call Aunty tomorrow at 6pm","New project Spring clean","How much is left in my budget?"].map(s=>html`<button key=${s} className="chip" onClick=${()=>send(s)}>${s}</button>`)}</div>
    <form className="ask" onSubmit=${e=>{e.preventDefault();send(q);setQ('')}}><label className="sr" htmlFor="chatin">Message</label><input id="chatin" value=${q} onChange=${e=>setQ(e.target.value)} placeholder="Type a request"/><button className="btn pri sm" type="submit" disabled=${busy}><${Ic} n="send" s=${16}/> Send</button></form></div></div>`}
 
 /* ---------- Planner ---------- */
@@ -498,7 +526,7 @@ function Planner({S,A,U}){
  else if(view==='month'){const first=iso(new Date(parse(cur).getFullYear(),parse(cur).getMonth(),1)),s=startOfWeek(first,ws),mo=parse(cur).getMonth();
   const days=Array.from({length:42},(_,i)=>addDays(s,i));const names=Array.from({length:7},(_,i)=>fmt(addDays(s,i),{weekday:'short'}));
   body=html`<div className="cal">${names.map(n=>html`<div key=${n} className="dow">${n}</div>`)}${days.map(d=>{const its=itemsOn(S,d);return html`<button key=${d} className=${'cell'+(parse(d).getMonth()!==mo?' out':'')+(d===T?' today':'')} aria-pressed=${d===cur} aria-label=${fmt(d,{weekday:'long',day:'numeric',month:'long'})+', '+its.length+' items'} onClick=${()=>{setCur(d);setView('day')}}>
-   <span className="dn">${parse(d).getDate()}</span><span className="dots">${its.slice(0,4).map((x,i)=>html`<i key=${i} className=${'dot '+(x.k==='r'?'r':x.k==='i'?'t':'')}></i>`)}</span></button>`})}</div>
+   <span className="dn">${parse(d).getDate()}</span><span className="dots">${its.slice(0,4).map((x,i)=>html`<i key=${i} className=${'dot '+(x.k==='r'?'r':(x.k==='i'||x.k==='m')?'t':'')}></i>`)}</span></button>`})}</div>
    <p className="cap muted" style=${{marginTop:8}}><span className="dot" style=${{display:'inline-block'}}></span> task &nbsp;<span className="dot r" style=${{display:'inline-block'}}></span> reminder &nbsp;<span className="dot t" style=${{display:'inline-block'}}></span> trip plan</p>`}
  else{const list=[...S.tasks].filter(t=>flt==='all'||(flt==='open'?!t.done:t.done)).sort((a,b)=>a.due<b.due?-1:1);
   body=html`<div className="stack"><div className="rowf">${[['open','Open'],['done','Done'],['all','All']].map(f=>html`<button key=${f[0]} className="chip" aria-pressed=${flt===f[0]} onClick=${()=>setFlt(f[0])}>${f[1]}</button>`)}
@@ -531,7 +559,7 @@ function Budget({S,A,U}){
    <div className="card cats"><h2>Categories</h2><p className="small muted" style=${{marginBottom:6}}>Change an allocation and every total updates.</p>
     ${cats.map(c=>{const s=sum(ex.filter(e=>e.cat===c).map(e=>e.amount)),a=S.alloc[c]||0;return html`<div key=${c} className="crow"><div><div style=${{fontWeight:500}}>${c}</div><div className="cap muted num">${money(s,cur)} of ${money(a,cur)}${s>a?' · over by '+money(s-a,cur):''}</div></div>
      <${Bar} v=${s} max=${a||1} over=${s>a}/><div><label className="sr" htmlFor=${'al-'+c}>Allocation for ${c}</label><input id=${'al-'+c} className="in alloc num" type="number" min="0" value=${a} onChange=${e=>A.setAlloc(c,Math.max(0,parseFloat(e.target.value)||0))}/></div></div>`})}</div></div>`
-  :html`<div className="card flush">${txs.length?html`<div className="list">${txs.map(e=>html`<div key=${e.id} className="item"><div className="body"><div className="tt">${e.title}</div><div className="cap muted">${rel(e.date)} · ${e.cat}${e.booking?' · booking':''}</div></div>
+  :html`<div className="card flush">${txs.length?html`<div className="list">${txs.map(e=>html`<div key=${e.id} className="item"><div className="body"><div className="tt">${e.title}</div><div className="cap muted">${rel(e.date)} · ${e.cat}${e.booking?' · booking':''}${e.project&&S.projects.find(p=>p.id===e.project)?' · '+S.projects.find(p=>p.id===e.project).name:''}</div></div>
     <span className=${'amt '+(e.type==='income'?'pos':'')}>${e.type==='income'?'+':'−'}${money(e.amount,cur).replace('−','')}</span><button className="ibtn sm" aria-label=${'Delete '+e.title} onClick=${()=>A.deleteTx(e.id)}><${Ic} n="trash" s=${18}/></button></div>`)}</div>`:html`<${Empty} t="No transactions" s="Add your first expense or income."/>`}</div>`}</div>`}
 
 /* ---------- Travel ---------- */
@@ -590,37 +618,246 @@ function Settings({S,A,U}){
   <div className="card"><h2>Appearance</h2><div className="rowf">${[['system','System','sun'],['light','Light','sun'],['dark','Dark','moon']].map(t=>html`<button key=${t[0]} className="chip" aria-pressed=${st.theme===t[0]} onClick=${()=>A.setSettings({theme:t[0]})}><${Ic} n=${t[2]} s=${16}/> ${t[1]}</button>`)}</div>
    <div className="sw" style=${{marginTop:10}}><div><div style=${{fontWeight:500}}>Reduce motion</div><div className="cap muted">Turns off animations in the app</div></div><button role="switch" aria-checked=${st.reduceMotion} aria-label="Reduce motion" onClick=${()=>A.setSettings({reduceMotion:!st.reduceMotion})}></button></div></div></div>
   <div className="col"><div className="card"><h2>Notifications</h2>${Sw("reminders","Reminder alerts","Show due reminders in the bell")}${Sw("digest","Morning summary","Preference saved only. Email is not connected.")}${Sw("assistant","Assistant suggestions","Show suggestions on Home")}</div>
-  <div className="card stack"><h2>Your data</h2><p className="small muted">Everything is stored in this browser only. There is no account, server or sync yet.</p>
+  <div className="card stack"><h2>Your data</h2><p className="small muted">Everything is stored in this browser only. There is no account, server or sync yet. Uploaded documents are kept in this browser's file storage and are not included in the JSON copy.</p>
    <div className="rowf"><button className="btn" onClick=${()=>{const j=JSON.stringify(S,null,2);try{navigator.clipboard.writeText(j).then(()=>U.toast('Data copied to clipboard'),()=>setCp(j))}catch(e){setCp(j)}}}>Copy data as JSON</button>
    <button className="btn" onClick=${()=>{A.reset(true);U.toast('Sample data restored')}}>Restore sample data</button>
    ${!conf?html`<button className="btn danger" onClick=${()=>setConf(true)}>Clear everything</button>`:html`<button className="btn danger" onClick=${()=>{A.reset(false);setConf(false);U.toast('All data cleared')}}>Yes, clear everything</button><button className="btn" onClick=${()=>setConf(false)}>Keep it</button>`}</div>
    ${cp?html`<div className="field"><label htmlFor="cpt">Select and copy</label><textarea id="cpt" className="in" style=${{minHeight:120,padding:8}} readOnly value=${cp} onFocus=${e=>e.target.select()}></textarea></div>`:null}</div>
   <p className="cap muted">Lifelyn is a front-end prototype. Email, push, real AI, bank data and bookings are not connected.</p></div></div>`}
 
+/* ---------- Milestone 2: shared helpers ---------- */
+const _sp={};
+const loadScript=u=>_sp[u]||(_sp[u]=new Promise((res,rej)=>{const s=document.createElement('script');s.src=u;s.onload=res;s.onerror=()=>{delete _sp[u];rej(new Error('Could not load '+u))};document.head.appendChild(s)}));
+const loadCss=u=>{if(document.querySelector('link[data-u="'+u+'"]'))return;const l=document.createElement('link');l.rel='stylesheet';l.href=u;l.dataset.u=u;document.head.appendChild(l)};
+const idb=()=>new Promise((res,rej)=>{const r=indexedDB.open('lifelyn-files',1);r.onupgradeneeded=()=>r.result.createObjectStore('f');r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)});
+const fput=async(id,b)=>{const d=await idb();return new Promise((res,rej)=>{const t=d.transaction('f','readwrite');t.objectStore('f').put(b,id);t.oncomplete=res;t.onerror=()=>rej(t.error)})};
+const fget=async id=>{const d=await idb();return new Promise((res,rej)=>{const r=d.transaction('f').objectStore('f').get(id);r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)})};
+const fdel=async id=>{const d=await idb();return new Promise((res,rej)=>{const t=d.transaction('f','readwrite');t.objectStore('f').delete(id);t.oncomplete=res;t.onerror=()=>rej(t.error)})};
+const kb=n=>n>1048576?(n/1048576).toFixed(1)+' MB':Math.max(1,Math.round(n/1024))+' KB';
+const ptasks=(S,id)=>S.tasks.filter(t=>t.project===id);
+const pprog=(S,p)=>{const t=ptasks(S,p.id),m=p.milestones||[],n=t.length+m.length;return n?Math.round((t.filter(x=>x.done).length+m.filter(x=>x.done).length)/n*100):0};
+const pspent=(S,id)=>sum(S.expenses.filter(e=>e.project===id&&e.type==='expense').map(e=>e.amount));
+const gpct=g=>g.target>0?Math.min(100,g.current/g.target*100):0;
+const streak=h=>{let d=today();if(!h.logs[d])d=addDays(d,-1);let n=0;while(h.logs[d]){n++;d=addDays(d,-1)}return n};
+const bestStreak=h=>{const ds=Object.keys(h.logs).sort();let b=0,c=0,p=null;for(const d of ds){c=(p&&diff(d,p)===1)?c+1:1;if(c>b)b=c;p=d}return b};
+const weekCount=(h,ws)=>{const s=startOfWeek(today(),ws);let n=0;for(let i=0;i<7;i++)if(h.logs[addDays(s,i)])n++;return n};
+function achievements(S){const td=S.tasks.filter(t=>t.done).length,best=Math.max(0,...S.habits.map(bestStreak)),ck=sum(S.habits.map(h=>Object.keys(h.logs).length));
+ return [['First task done','Complete any task',td,1],['Ten tasks done','Complete 10 tasks',td,10],['Goal setter','Create a goal',S.goals.length,1],['Goal reached','Reach 100% on a goal',S.goals.filter(g=>g.done||gpct(g)>=100).length,1],
+  ['Three-day streak','Check in a habit 3 days in a row',best,3],['Seven-day streak','Check in a habit 7 days in a row',best,7],['30 check-ins','Log 30 habit check-ins',ck,30],
+  ['Project finished','Mark a project completed',S.projects.filter(p=>p.status==='done').length,1],['Paper trail','Verify a document',S.docs.filter(d=>d.status==='verified').length,1]].map(a=>({t:a[0],d:a[1],v:a[2],m:a[3]}))}
+
+/* ---------- document text extraction (PDF only, in the browser) ---------- */
+const PDFJS='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js',PDFW='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+async function pdfText(blob){await loadScript(PDFJS);await loadScript(PDFW);const lib=window.pdfjsLib;try{lib.GlobalWorkerOptions.workerSrc=PDFW}catch(e){}
+ const doc=await Promise.race([lib.getDocument({data:await blob.arrayBuffer()}).promise,new Promise((_,r)=>setTimeout(()=>r(new Error('timeout')),20000))]);let out='';
+ for(let i=1;i<=Math.min(doc.numPages,5);i++){const c=await(await doc.getPage(i)).getTextContent();out+=c.items.map(x=>x.str+(x.hasEOL?'\n':' ')).join('')+'\n'}return out}
+const MON=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
+function findDates(t){const out=[],re=/(\d{4})-(\d{2})-(\d{2})|(\d{1,2})[ \-\/](jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*[ \-\/,]*(\d{4}|\d{2})\b|(\d{1,2})\/(\d{1,2})\/(\d{4})/gi;let m;
+ while((m=re.exec(t))){let y,mo,d;if(m[1]){y=+m[1];mo=+m[2];d=+m[3]}else if(m[4]){d=+m[4];mo=MON.indexOf(m[5].toLowerCase())+1;y=+m[6];if(y<100)y+=2000}else{d=+m[7];mo=+m[8];y=+m[9]}if(mo>=1&&mo<=12&&d>=1&&d<=31)out.push(y+'-'+pad(mo)+'-'+pad(d))}return out}
+const findTimes=t=>(t.match(/\b([01]?\d|2[0-3]):([0-5]\d)\b/g)||[]).map(x=>x.length===4?'0'+x:x);
+const CSYM={'£':'GBP','€':'EUR','$':'USD','₦':'NGN'};
+function guessDoc(text){const t=text.replace(/[ \t]+/g,' '),l=t.toLowerCase();const dates=findDates(t),times=findTimes(t);
+ const isFlight=/(boarding|e-ticket|flight|departure|itinerary)/.test(l)&&/\b[A-Z]{3}\b/.test(t)&&/(flight|depart|boarding|e-ticket)/.test(l);
+ const isHotel=/(check-in|check in|check-out|nights)/.test(l)&&/(hotel|reservation|booking|stay)/.test(l);
+ const type=isFlight?'flight':isHotel?'hotel':/invoice/.test(l)?'invoice':/(receipt|subtotal|vat|total)/.test(l)?'receipt':'other';const f={};
+ if(type==='flight'){const stop=new Set(['THE','AND','PNR','VAT','TAX','FOR','NOT','ALL','YOU','ARE','PDF','ETK','GBP','USD','EUR','NGN','AIR','MRS','MR','MS','MISS','DEP','ARR']);
+  const codes=(t.match(/\b[A-Z]{3}\b/g)||[]).filter(c=>!stop.has(c));const fn=t.match(/\b([A-Z]{2}|[A-Z]\d|\d[A-Z])\s?(\d{2,4})\b/);const ref=t.match(/(?:booking|confirmation|reference|pnr|record locator)[^A-Za-z0-9]{0,15}([A-Z0-9]{5,8})\b/i);
+  const pax=t.match(/(?:passenger|name)[:\s]+([A-Z][A-Za-z'\/\- ]{3,40})/);const bag=t.match(/(\d{1,2}\s?kg|\d\s?(?:pc|piece)s?)/i);
+  Object.assign(f,{passenger:pax?pax[1].trim():'',flightNo:fn?fn[1]+fn[2]:'',from:codes[0]||'',to:codes[1]||'',depDate:dates[0]||'',depTime:times[0]||'',arrDate:dates[1]||dates[0]||'',arrTime:times[1]||'',ref:ref?ref[1].toUpperCase():'',bags:bag?bag[1]:'',airline:''})}
+ if(type==='hotel'){const ref=t.match(/(?:confirmation|booking|reservation)[^A-Za-z0-9]{0,15}([A-Z0-9\-]{5,14})/i);Object.assign(f,{name:(t.split('\n').find(x=>x.trim().length>2)||'').trim().slice(0,60),checkIn:dates[0]||'',checkOut:dates[1]||'',ref:ref?ref[1]:''})}
+ if(type==='receipt'||type==='invoice'){const tots=[...t.matchAll(/(sub)?total[^0-9£€$₦]{0,20}([£€$₦])?\s?(\d[\d,]*\.\d{2})/gi)].filter(m=>!m[1]);const tm=tots.length?tots[tots.length-1]:null;const tot=tm?[null,tm[2],tm[3]]:null;const any=[...t.matchAll(/([£€$₦])\s?(\d[\d,]*\.\d{2})/g)];const pick=tot?tot:any.length?[null,any[any.length-1][1],any[any.length-1][2]]:null;
+  Object.assign(f,{merchant:(t.split('\n').map(x=>x.trim()).find(x=>x.length>2&&x.length<48&&!/receipt|invoice/i.test(x))||''),date:dates[0]||'',amount:pick?pick[2].replace(/,/g,''):'',cur:pick&&pick[1]?CSYM[pick[1]]:'',cat:pCat(t)})}
+ return {type,fields:f,found:Object.values(f).filter(Boolean).length}}
+const DT=[['flight','Flight ticket'],['hotel','Hotel confirmation'],['invoice','Invoice'],['receipt','Receipt'],['other','Other document']];
+const CURS=Object.keys(SYM).map(c=>[c,c]);
+const DF={flight:[['passenger','Passenger name'],['airline','Airline'],['flightNo','Flight number'],['from','Departure airport'],['to','Arrival airport'],['depDate','Departure date','date'],['depTime','Departure time','time'],['arrDate','Arrival date','date'],['arrTime','Arrival time','time'],['ref','Booking reference'],['bags','Baggage allowance']],
+ hotel:[['name','Hotel'],['address','Address'],['checkIn','Check-in','date'],['checkOut','Check-out','date'],['ref','Confirmation number'],['cost','Total cost','number'],['cur','Currency','cur']],
+ invoice:[['merchant','Supplier'],['number','Invoice number'],['date','Date','date'],['due','Due date','date'],['amount','Amount','number'],['cur','Currency','cur']],
+ receipt:[['merchant','Merchant'],['date','Date','date'],['amount','Amount','number'],['cur','Currency','cur'],['cat','Category','cat']],
+ other:[['title','Title'],['notes','Notes','textarea']]};
+const dfields=type=>DF[type].map(f=>({k:f[0],label:f[1],type:f[2]==='cur'||f[2]==='cat'?undefined:f[2],options:f[2]==='cur'?[['','Not sure'],...CURS]:f[2]==='cat'?CATS.map(c=>[c,c]):undefined,full:f[2]==='textarea'}));
+const docTitle=d=>{const f=d.fields||{};return d.type==='flight'&&f.flightNo?'Flight '+f.flightNo+(f.from&&f.to?' '+f.from+' to '+f.to:''):d.type==='hotel'&&f.name?f.name:(d.type==='receipt'||d.type==='invoice')&&f.merchant?f.merchant:d.type==='other'&&f.title?f.title:d.name};
+
+/* ---------- Projects ---------- */
+function Projects({S,A,U,sel,setSel}){
+ const cur=S.settings.currency,T=today();const [tab,setTab]=useState('overview');const [ft,setFt]=useState('active');const [nt,setNt]=useState('');const [nm,setNm]=useState('');const [nd,setNd]=useState('');const [conf,setConf]=useState(false);const [att,setAtt]=useState('');
+ const p=S.projects.find(x=>x.id===sel);
+ if(!p){const list=S.projects.filter(x=>x.status===ft);
+  return html`<div className="stack"><div className="rowf" style=${{justifyContent:'space-between'}}><div className="rowf">${[['active','Active'],['done','Completed'],['archived','Archived']].map(f=>html`<button key=${f[0]} className="chip" aria-pressed=${ft===f[0]} onClick=${()=>setFt(f[0])}>${f[1]}</button>`)}</div><button className="btn pri" onClick=${()=>U.open('project')}><${Ic} n="plus" s=${18}/> New project</button></div>
+   ${list.length?html`<div className="cardgrid">${list.map(x=>{const sp=pspent(S,x.id),pr=pprog(S,x);return html`<button key=${x.id} className="tripcard" onClick=${()=>{setSel(x.id);setTab('overview')}}>
+     <div className="rowf" style=${{justifyContent:'space-between',flexWrap:'nowrap'}}><h2 style=${{margin:0}}>${x.name}</h2>${x.priority==='high'?html`<span className="pill acc">High</span>`:null}</div>
+     ${x.desc?html`<div className="small muted" style=${{overflowWrap:'anywhere'}}>${x.desc.slice(0,110)}</div>`:null}<${Bar} v=${pr} max=${100}/>
+     <div className="rowf cap muted num"><span>${pr}% done</span>${x.deadline?html`<span>· due ${rel(x.deadline)}</span>`:null}${x.budget?html`<span>· ${money(sp,cur)} of ${money(x.budget,cur)}</span>`:null}</div></button>`})}</div>`
+   :html`<div className="card"><${Empty} t=${ft==='active'?'No active projects':'Nothing here'} s=${ft==='active'?'A project groups tasks, milestones, spending, reminders and files for one goal, like a wedding or a house move.':'Projects you '+(ft==='done'?'complete':'archive')+' appear here.'}/></div>`}</div>`}
+ const tk=ptasks(S,p.id),top=tk.filter(t=>!t.parent),sp=pspent(S,p.id),pr=pprog(S,p),ms=[...(p.milestones||[])].sort((a,b)=>(a.date||'9')<(b.date||'9')?-1:1);
+ const rems=S.reminders.filter(r=>r.project===p.id&&!r.done),docs=S.docs.filter(d=>d.project===p.id),spare=S.docs.filter(d=>d.project!==p.id);
+ const pex=S.expenses.filter(e=>e.project===p.id).sort((a,b)=>a.date<b.date?1:-1);
+ return html`<div className="stack" style=${{gap:'14px'}}>
+  <div className="rowf" style=${{justifyContent:'space-between'}}><button className="btn sm" onClick=${()=>setSel(null)}><${Ic} n="l" s=${16}/> All projects</button><button className="btn sm" onClick=${()=>U.open('project',{edit:p.id})}>Edit details</button></div>
+  <div><div className="rowf"><h1 className="disp" style=${{margin:0}}>${p.name}</h1><span className=${'pill '+(p.status==='done'?'ok':p.status==='archived'?'':'pri')}>${p.status==='done'?'Completed':p.status==='archived'?'Archived':'Active'}</span></div>${p.desc?html`<p className="muted" style=${{marginTop:4,overflowWrap:'anywhere'}}>${p.desc}</p>`:null}</div>
+  <div className="rowf">${p.status==='active'?html`<button className="btn sm pri" onClick=${()=>{A.updProject(p.id,{status:'done'});U.toast('Project marked completed')}}><${Ic} n="check" s=${16}/> Mark completed</button><button className="btn sm" onClick=${()=>{A.updProject(p.id,{status:'archived'});U.toast('Project archived')}}>Archive</button>`
+   :html`<button className="btn sm" onClick=${()=>{A.updProject(p.id,{status:'active'});U.toast('Project reopened')}}>${p.status==='done'?'Reopen':'Restore'}</button>${p.status==='done'?html`<button className="btn sm" onClick=${()=>A.updProject(p.id,{status:'archived'})}>Archive</button>`:null}`}
+   ${!conf?html`<button className="btn sm danger" onClick=${()=>setConf(true)}>Delete</button>`:html`<button className="btn sm danger" onClick=${()=>{A.deleteProject(p.id);setSel(null)}}>Yes, delete project</button><button className="btn sm" onClick=${()=>setConf(false)}>Keep</button>`}</div>
+  <div role="tablist" className="tabs">${[['overview','Overview'],['tasks','Tasks'],['milestones','Milestones'],['money','Money'],['notes','Notes'],['files','Files']].map(v=>html`<button key=${v[0]} role="tab" className="tab" aria-selected=${tab===v[0]} onClick=${()=>setTab(v[0])}>${v[1]}</button>`)}</div>
+  ${tab==='overview'?html`<div className="card stack"><div className="stat"><div><div className="cap muted">Progress</div><div className="v">${pr}%</div></div><div><div className="cap muted">Deadline</div><div className="v" style=${{fontSize:'1rem'}}>${p.deadline?rel(p.deadline):'None set'}</div></div>
+    <div><div className="cap muted">Tasks done</div><div className="v">${tk.filter(t=>t.done).length} of ${tk.length}</div></div><div><div className="cap muted">Spent</div><div className="v">${money(sp,cur)}${p.budget?html`<span className="cap muted"> of ${money(p.budget,cur)}</span>`:null}</div></div></div>
+    <${Bar} v=${pr} max=${100}/><div className="cap muted">${p.start?'Started '+rel(p.start)+'. ':''}${p.priority==='high'?'High priority.':p.priority==='low'?'Low priority.':'Normal priority.'}</div></div>
+   <div className="card"><div className="shead"><h2>Reminders</h2><button className="btn sm soft" onClick=${()=>U.open('reminder',{project:p.id})}><${Ic} n="plus" s=${16}/> Add</button></div>
+    ${rems.length?rems.map(r=>html`<div key=${r.id} className="rowf small" style=${{justifyContent:'space-between'}}><span>${r.title}</span><span className="pill warn">${rel(r.date)} ${r.time}</span></div>`):html`<p className="small muted">No reminders for this project.</p>`}</div>`:null}
+  ${tab==='tasks'?html`<div className="card flush"><form className="rowf" style=${{padding:12,flexWrap:'nowrap'}} onSubmit=${e=>{e.preventDefault();if(!nt.trim())return;A.addTask({title:nt.trim(),due:p.deadline&&p.deadline>=T?p.deadline:T,project:p.id},true);setNt('')}}>
+    <label className="sr" htmlFor="ptask">New task for this project</label><input id="ptask" className="in" style=${{flex:1,minWidth:0}} value=${nt} onChange=${e=>setNt(e.target.value)} placeholder="Add a task"/><button className="btn pri" type="submit">Add</button></form>
+   ${top.length?html`<div className="list">${top.map(t=>html`<${React.Fragment} key=${t.id}><${TaskRow} t=${t} S=${S} A=${A} U=${U}/>${tk.filter(c=>c.parent===t.id).map(c=>html`<div key=${c.id} className="nested"><${TaskRow} t=${c} S=${S} A=${A} U=${U}/></div>`)}
+     <div className="nested" style=${{padding:'0 14px 8px'}}><button className="link" onClick=${()=>U.open('task',{project:p.id,parent:t.id,date:t.due})}>+ Add subtask</button></div><//>`)}</div>`:html`<${Empty} t="No tasks yet" s="Add the first step above."/>`}</div>`:null}
+  ${tab==='milestones'?html`<div className="card flush"><form className="rowf" style=${{padding:12}} onSubmit=${e=>{e.preventDefault();if(!nm.trim())return;A.projF(p.id,x=>({...x,milestones:[...x.milestones,{id:uid(),title:nm.trim(),date:nd,done:false}]}));setNm('');setNd('')}}>
+    <label className="sr" htmlFor="pms">Milestone</label><input id="pms" className="in" style=${{flex:'1 1 160px',minWidth:0}} value=${nm} onChange=${e=>setNm(e.target.value)} placeholder="Milestone, for example Venue booked"/>
+    <label className="sr" htmlFor="pmd">Milestone date</label><input id="pmd" className="in" style=${{flex:'0 1 150px'}} type="date" value=${nd} onChange=${e=>setNd(e.target.value)}/><button className="btn pri" type="submit">Add</button></form>
+   ${ms.length?html`<div className="list">${ms.map(m=>html`<div key=${m.id} className=${'item'+(m.done?' done':'')}><button className="tickwrap" role="checkbox" aria-checked=${m.done} aria-label=${m.title} onClick=${()=>A.projF(p.id,x=>({...x,milestones:x.milestones.map(y=>y.id===m.id?{...y,done:!y.done}:y)}))}><span className="tick" aria-checked=${m.done}><${Ic} n="check" s=${16}/></span></button>
+     <div className="body"><div className="tt">${m.title}</div>${m.date?html`<div className="cap muted">${rel(m.date)}</div>`:null}</div><button className="ibtn sm" aria-label=${'Remove '+m.title} onClick=${()=>A.projF(p.id,x=>({...x,milestones:x.milestones.filter(y=>y.id!==m.id)}))}><${Ic} n="x" s=${16}/></button></div>`)}</div>`:html`<${Empty} t="No milestones" s="Milestones mark the big checkpoints on the way to the deadline."/>`}</div>`:null}
+  ${tab==='money'?html`<div className="stack"><div className="card"><div className="stat"><div><div className="cap muted">Project budget</div><div className="v">${money(p.budget||0,cur)}</div></div><div><div className="cap muted">Spent</div><div className="v">${money(sp,cur)}</div></div>
+    <div><div className="cap muted">${p.budget-sp<0?'Over by':'Left'}</div><div className="v" style=${{color:p.budget-sp<0?'var(--err)':'var(--ok)'}}>${money(Math.abs((p.budget||0)-sp),cur)}</div></div></div>${p.budget?html`<div style=${{marginTop:12}}><${Bar} v=${sp} max=${p.budget} over=${sp>p.budget}/></div>`:html`<p className="small muted" style=${{marginTop:10}}>Set a budget under Edit details to track spending against it.</p>`}</div>
+   <div className="card flush"><div className="shead" style=${{padding:'14px 16px 0'}}><h2>Transactions</h2><button className="btn sm soft" onClick=${()=>U.open('tx',{project:p.id})}><${Ic} n="plus" s=${16}/> Add</button></div>
+    ${pex.length?html`<div className="list">${pex.map(e=>html`<div key=${e.id} className="item"><div className="body"><div className="tt">${e.title}</div><div className="cap muted">${rel(e.date)} · ${e.cat}</div></div><span className=${'amt '+(e.type==='income'?'pos':'')}>${e.type==='income'?'+':'−'}${money(e.amount,cur).replace('−','')}</span></div>`)}</div>`:html`<${Empty} t="No spending yet" s="Spending added to this project shows up here and in your budget."/>`}</div></div>`:null}
+  ${tab==='notes'?html`<div className="card stack"><label htmlFor="pnotes" className="small" style=${{fontWeight:500}}>Notes (saved as you type)</label><textarea id="pnotes" className="in" style=${{minHeight:220,padding:12}} value=${p.notes||''} onChange=${e=>A.updProject(p.id,{notes:e.target.value})} placeholder="Ideas, contacts, decisions"></textarea></div>`:null}
+  ${tab==='files'?html`<div className="stack"><div className="card flush">${docs.length?html`<div className="list">${docs.map(d=>html`<div key=${d.id} className="item"><${Ic} n="file"/><div className="body"><div className="tt">${docTitle(d)}</div><div className="cap muted">${(DT.find(x=>x[0]===d.type)||[])[1]} · ${d.status==='verified'?'Verified':'Needs review'}</div></div><button className="btn sm" onClick=${()=>U.open('doc',{id:d.id})}>Open</button><button className="ibtn sm" aria-label="Detach" onClick=${()=>A.updDoc(d.id,{project:''})}><${Ic} n="x" s=${16}/></button></div>`)}</div>`:html`<${Empty} t="No files attached" s="Attach tickets, invoices and receipts to keep them with this project."/>`}</div>
+   <div className="card stack"><div className="field"><label htmlFor="attdoc">Attach an existing document</label><select id="attdoc" className="in" value=${att} onChange=${e=>setAtt(e.target.value)}><option value="">Choose a document</option>${spare.map(d=>html`<option key=${d.id} value=${d.id}>${docTitle(d)}</option>`)}</select></div>
+    <div className="rowf"><button className="btn" disabled=${!att} onClick=${()=>{A.updDoc(att,{project:p.id});setAtt('')}}>Attach</button><button className="btn" onClick=${()=>U.go('documents')}>Upload a new document</button></div></div></div>`:null}</div>`}
+
+/* ---------- Goals and habits ---------- */
+function Goals({S,A,U}){
+ const T=today(),ws=S.settings.weekStart;const [tab,setTab]=useState('goals');const [ms,setMs]=useState({});
+ const last7=Array.from({length:7},(_,i)=>addDays(T,i-6)),ach=achievements(S);
+ return html`<div className="stack" style=${{gap:'14px'}}><div role="tablist" className="tabs">${[['goals','Goals'],['habits','Habits'],['ach','Achievements']].map(v=>html`<button key=${v[0]} role="tab" className="tab" aria-selected=${tab===v[0]} onClick=${()=>setTab(v[0])}>${v[1]}</button>`)}</div>
+ ${tab==='goals'?html`<div className="stack"><div><button className="btn pri" onClick=${()=>U.open('goal')}><${Ic} n="plus" s=${18}/> New goal</button></div>
+  ${S.goals.length?S.goals.map(g=>{const p=gpct(g),days=g.deadline?diff(g.deadline,T):null;return html`<div key=${g.id} className="card stack">
+   <div className="rowf" style=${{justifyContent:'space-between',flexWrap:'nowrap'}}><h2 style=${{margin:0,overflowWrap:'anywhere'}}>${g.title}</h2>${g.done||p>=100?html`<span className="pill ok">Reached</span>`:days!=null?html`<span className=${'pill '+(days<0?'err':'acc')}>${days<0?'Past deadline':days===0?'Due today':days+' days left'}</span>`:null}</div>
+   ${g.why?html`<div className="small muted">${g.why}</div>`:null}
+   <div className="num"><b>${g.current.toLocaleString('en-GB')}</b> <span className="muted">of ${g.target.toLocaleString('en-GB')} ${g.unit} · ${Math.round(p)}%</span></div><${Bar} v=${p} max=${100}/>
+   <div className="rowf"><button className="btn sm pri" onClick=${()=>U.open('logprog',{id:g.id})}><${Ic} n="plus" s=${16}/> Log progress</button>${!g.done&&p<100?html`<button className="btn sm" onClick=${()=>A.goalF(g.id,x=>({...x,done:true}))}>Mark reached</button>`:null}<button className="btn sm" onClick=${()=>A.deleteGoal(g.id)}>Delete</button></div>
+   <div><h3 className="small" style=${{marginBottom:4}}>Milestones</h3>${(g.milestones||[]).map(m=>html`<div key=${m.id} className=${'rowf small'+(m.done?' faint':'')} style=${{flexWrap:'nowrap'}}><button className="tickwrap" role="checkbox" aria-checked=${m.done} aria-label=${m.title} onClick=${()=>A.goalF(g.id,x=>({...x,milestones:x.milestones.map(y=>y.id===m.id?{...y,done:!y.done}:y)}))}><span className="tick" aria-checked=${m.done}><${Ic} n="check" s=${16}/></span></button><span style=${{flex:1,textDecoration:m.done?'line-through':'none'}}>${m.title}</span></div>`)}
+    <form className="rowf" style=${{flexWrap:'nowrap',marginTop:4}} onSubmit=${e=>{e.preventDefault();const v=(ms[g.id]||'').trim();if(!v)return;A.goalF(g.id,x=>({...x,milestones:[...(x.milestones||[]),{id:uid(),title:v,done:false}]}));setMs({...ms,[g.id]:''})}}><label className="sr" htmlFor=${'gm-'+g.id}>New milestone</label><input id=${'gm-'+g.id} className="in" style=${{minWidth:0,flex:1}} placeholder="Add a milestone" value=${ms[g.id]||''} onChange=${e=>setMs({...ms,[g.id]:e.target.value})}/><button className="btn sm" type="submit">Add</button></form></div>
+   ${(g.log||[]).length?html`<details><summary className="small" style=${{cursor:'pointer',minHeight:32}}>Progress history (${g.log.length})</summary>${[...g.log].reverse().map(l=>html`<div key=${l.id} className="rowf cap muted num" style=${{justifyContent:'space-between'}}><span>${rel(l.date)}</span><span>${l.delta>=0?'+':''}${l.delta} ${g.unit} → ${l.total}</span></div>`)}</details>`:null}</div>`})
+  :html`<div className="card"><${Empty} t="No goals yet" s="Set a target with a deadline, then log progress as you go."/></div>`}</div>`:null}
+ ${tab==='habits'?html`<div className="stack"><div><button className="btn pri" onClick=${()=>U.open('habit')}><${Ic} n="plus" s=${18}/> New habit</button></div>
+  ${S.habits.length?S.habits.map(h=>{const g=S.goals.find(x=>x.id===h.goal),wc=weekCount(h,ws);return html`<div key=${h.id} className="card stack">
+   <div className="rowf" style=${{justifyContent:'space-between',flexWrap:'nowrap'}}><div style=${{minWidth:0}}><h2 style=${{margin:0,overflowWrap:'anywhere'}}>${h.title}</h2><div className="cap muted">${h.perWeek===7?'Every day':h.perWeek+' days a week'}${g?' · for '+g.title:''}</div></div>
+    <button className=${'btn '+(h.logs[T]?'soft':'pri')} aria-pressed=${!!h.logs[T]} onClick=${()=>A.toggleHabit(h.id,T)}>${h.logs[T]?html`<${Ic} n="check" s=${18}/> Done today`:'Check in'}</button></div>
+   <div className="rowf" role="group" aria-label=${'Last 7 days for '+h.title} style=${{gap:6}}>${last7.map(d=>html`<button key=${d} className="chip" style=${{minWidth:44,justifyContent:'center',flexDirection:'column',gap:0,padding:'4px 6px',height:'auto'}} aria-pressed=${!!h.logs[d]} aria-label=${fmt(d,{weekday:'long',day:'numeric',month:'short'})+(h.logs[d]?', done':', not done')} onClick=${()=>A.toggleHabit(h.id,d)}><span className="cap">${fmt(d,{weekday:'short'}).slice(0,2)}</span><span>${h.logs[d]?'✓':'·'}</span></button>`)}</div>
+   <div className="rowf small muted num"><span><b>${streak(h)}</b> day streak</span><span>· best ${bestStreak(h)}</span><span>· ${wc} of ${h.perWeek} this week</span><span>· ${Object.keys(h.logs).length} total</span></div><${Bar} v=${wc} max=${h.perWeek}/>
+   <div><button className="btn sm" onClick=${()=>A.deleteHabit(h.id)}>Delete habit</button></div></div>`}):html`<div className="card"><${Empty} t="No habits yet" s="Pick something small to do often, and check in each day."/></div>`}</div>`:null}
+ ${tab==='ach'?html`<div className="cardgrid">${ach.map(a=>html`<div key=${a.t} className="card" style=${{opacity:a.v>=a.m?1:.8}}><div className="rowf" style=${{justifyContent:'space-between',flexWrap:'nowrap'}}><h3 style=${{margin:0}}>${a.t}</h3>${a.v>=a.m?html`<span className="pill ok"><${Ic} n="check" s=${12}/> Earned</span>`:html`<span className="pill">Locked</span>`}</div><div className="small muted" style=${{margin:'4px 0 8px'}}>${a.d}</div><${Bar} v=${Math.min(a.v,a.m)} max=${a.m}/><div className="cap muted num" style=${{marginTop:4}}>${Math.min(a.v,a.m)} of ${a.m}</div></div>`)}</div>`:null}</div>`}
+
+/* ---------- Documents ---------- */
+function Documents({S,A,U}){
+ const [busy,setBusy]=useState(false);
+ const onFile=async e=>{const f=e.target.files&&e.target.files[0];e.target.value='';if(!f)return;
+  if(!(f.type==='application/pdf'||f.type.startsWith('image/'))){U.toast('Choose a PDF or a photo');return}
+  if(f.size>15*1048576){U.toast('That file is over 15 MB');return}
+  setBusy(true);const id=uid();try{await fput(id,f);A.addDoc({id,name:f.name||'Scanned document',mime:f.type,size:f.size,added:today(),type:'other',status:'new',fields:{},project:''});U.open('doc',{id})}catch(err){U.toast("This browser couldn't store the file. Private browsing can block file storage.")}setBusy(false)};
+ const docs=[...S.docs].sort((a,b)=>a.added<b.added?1:-1);
+ return html`<div className="stack"><div className="note">Files are stored on this device only, inside this browser. PDFs are read here to suggest details. Photos are stored and shown, but reading text from photos needs an OCR service, which comes with the backend. You always check the details before anything is saved to your budget or trips.</div>
+  <div className="rowf"><label className="btn pri" style=${{cursor:'pointer'}}><${Ic} n="upload" s=${18}/> Upload PDF or photo<input className="sr" type="file" id="updoc" accept="application/pdf,image/*" onChange=${onFile}/></label>
+   <label className="btn" style=${{cursor:'pointer'}}><${Ic} n="camera" s=${18}/> Scan with camera<input className="sr" type="file" id="scandoc" accept="image/*" capture="environment" onChange=${onFile}/></label>${busy?html`<span className="small muted">Saving…</span>`:null}</div>
+  <div className="card flush">${docs.length?html`<div className="list">${docs.map(d=>html`<div key=${d.id} className="item"><${Ic} n="file"/><div className="body"><div className="tt">${docTitle(d)}</div><div className="rowf cap muted" style=${{gap:6}}><span>${(DT.find(x=>x[0]===d.type)||[])[1]}</span><span>${kb(d.size)}</span><span>${rel(d.added)}</span><span className=${'pill '+(d.status==='verified'?'ok':'warn')}>${d.status==='verified'?'Verified':'Needs review'}</span></div></div>
+   <button className="btn sm" onClick=${()=>U.open('doc',{id:d.id})}>${d.status==='verified'?'Open':'Review'}</button><button className="ibtn sm" aria-label=${'Delete '+d.name} onClick=${()=>A.deleteDoc(d.id)}><${Ic} n="trash" s=${18}/></button></div>`)}</div>`:html`<${Empty} t="No documents yet" s="Upload a flight ticket, hotel confirmation, invoice or receipt to get started."/>`}</div></div>`}
+
+function DocSheet({id,S,A,U,close}){
+ const d=S.docs.find(x=>x.id===id);const cur=S.settings.currency;
+ const [type,setType]=useState(d?d.type:'other'),[url,setUrl]=useState(''),[busy,setBusy]=useState(false),[note,setNote]=useState(''),[trip,setTrip]=useState(S.trips[0]?S.trips[0].id:''),[amt,setAmt]=useState('');
+ useEffect(()=>{let u,dead=false;fget(id).then(b=>{if(b&&!dead){u=URL.createObjectURL(b);setUrl(u)}}).catch(()=>{});return()=>{dead=true;if(u)URL.revokeObjectURL(u)}},[id]);
+ useEffect(()=>{if(!d||d.tried)return;let dead=false;(async()=>{
+  if(d.mime==='application/pdf'){setBusy(true);try{const b=await fget(id);const g=guessDoc(await pdfText(b));if(dead)return;A.updDoc(id,{tried:true,type:g.type,fields:g.fields,extracted:'pdf'});setType(g.type);setNote(g.found?'Suggested from the PDF text. Check every field before saving.':'The PDF has little readable text. Enter the details by hand.')}
+   catch(e){if(!dead){A.updDoc(id,{tried:true,extracted:'failed'});setNote("I couldn't read this PDF in the browser. Enter the details by hand.")}}if(!dead)setBusy(false)}
+  else{A.updDoc(id,{tried:true,extracted:'none'});setNote('Reading text from photos needs an OCR service, which comes with the backend. Enter the details by hand from the preview.')}})();return()=>{dead=true}},[id]);
+ if(!d)return null;const f=d.fields||{},ver=d.status==='verified';
+ const addFlight=()=>{const its=[{id:uid(),date:f.depDate,time:f.depTime||'00:00',title:(f.airline?f.airline+' ':'')+(f.flightNo||'Flight')+': '+(f.from||'?')+' to '+(f.to||'?')}];if(f.arrDate&&f.arrTime)its.push({id:uid(),date:f.arrDate,time:f.arrTime,title:'Arrive '+(f.to||'')});
+  if(!f.depDate){U.toast('Add a departure date first');return}A.updTrip(trip,t=>({...t,itinerary:[...t.itinerary,...its]}));A.updDoc(id,{used:'itinerary',trip});U.toast('Flight added to the itinerary')};
+ const addHotel=()=>{if(!f.checkIn){U.toast('Add a check-in date first');return}A.updTrip(trip,t=>({...t,bookings:[...t.bookings,{id:uid(),type:'Stay',title:f.name||'Hotel',cost:+f.cost||0,paid:false,cat:'Stay'}],itinerary:[...t.itinerary,{id:uid(),date:f.checkIn,time:'15:00',title:'Check in: '+(f.name||'hotel')}]}));A.updDoc(id,{used:'trip',trip});U.toast('Hotel added to the trip')};
+ const diffCur=f.cur&&f.cur!==cur;const useAmt=diffCur?parseFloat(amt):parseFloat(f.amount);
+ const addSpend=()=>{if(!(useAmt>0)){U.toast(diffCur?'Enter the amount in '+cur:'Add an amount first');return}A.addTx({type:'expense',title:f.merchant||d.name,amount:useAmt,cat:d.type==='receipt'?(f.cat||'Other'):'Other',date:f.date||today(),project:d.project||undefined,orig:diffCur?{amount:parseFloat(f.amount)||0,cur:f.cur}:undefined,doc:id});A.updDoc(id,{used:'budget'});U.toast('Added to your budget')};
+ return html`<${Sheet} title=${ver?docTitle(d):'Review document'} onClose=${close}><div className="stack">
+  ${url?(d.mime.startsWith('image/')?html`<img src=${url} alt="Uploaded document" style=${{maxHeight:240,objectFit:'contain',borderRadius:10,border:'1px solid var(--line)',background:'var(--sunken)'}}/>`:html`<a className="btn sm" href=${url} target="_blank" rel="noopener">Open the PDF</a>`):html`<p className="small muted">Preview unavailable.</p>`}
+  ${busy?html`<div className="note">Reading the PDF…</div>`:note?html`<div className="note">${note}</div>`:null}
+  <div className="field"><label htmlFor="dtype">Document type</label><select id="dtype" className="in" value=${type} onChange=${e=>setType(e.target.value)}>${DT.map(t=>html`<option key=${t[0]} value=${t[0]}>${t[1]}</option>`)}</select></div>
+  <${Form} key=${type+(d.tried?'1':'0')+(busy?'b':'')} fields=${dfields(type)} initial=${d.type===type?f:{}} submit=${ver?'Save changes':'Verify and save'} onCancel=${close} onSubmit=${v=>{A.updDoc(id,{type,fields:v,status:'verified'});U.toast('Document saved')}}/>
+  ${ver?html`<div className="card stack" style=${{background:'var(--sunken)'}}><h3>Use this document</h3>
+   <div className="field"><label htmlFor="dproj">Attach to project</label><select id="dproj" className="in" value=${d.project||''} onChange=${e=>A.updDoc(id,{project:e.target.value})}><option value="">None</option>${S.projects.filter(p=>p.status==='active').map(p=>html`<option key=${p.id} value=${p.id}>${p.name}</option>`)}</select></div>
+   ${(d.type==='flight'||d.type==='hotel')?(S.trips.length?html`<div className="field"><label htmlFor="dtrip">Trip</label><select id="dtrip" className="in" value=${trip} onChange=${e=>setTrip(e.target.value)}>${S.trips.map(t=>html`<option key=${t.id} value=${t.id}>${t.name}</option>`)}</select></div><div><button className="btn pri" onClick=${d.type==='flight'?addFlight:addHotel}>${d.type==='flight'?'Add flight to itinerary':'Add hotel to trip'}</button></div>`:html`<p className="small muted">Create a trip in Travel first, then come back to add this.</p>`):null}
+   ${(d.type==='receipt'||d.type==='invoice')?html`${diffCur?html`<div className="field"><label htmlFor="damt">Amount in ${cur} (the document is in ${f.cur})</label><input id="damt" className="in" type="number" step="0.01" min="0" value=${amt} onChange=${e=>setAmt(e.target.value)}/><p className="cap muted">Live exchange rates arrive in a later milestone, so enter the converted amount yourself. The original ${f.amount} ${f.cur} is kept on the transaction.</p></div>`:null}<div><button className="btn pri" onClick=${addSpend}>Add expense to budget</button></div>`:null}
+   ${d.used?html`<p className="cap muted">Already used: ${d.used==='itinerary'?'added to itinerary':d.used==='trip'?'added to trip':'added to budget'}.</p>`:null}</div>`:null}
+ </div><//>`}
+
+/* ---------- Explore (OpenStreetMap services, no key) ---------- */
+const KINDS={attractions:['Attractions',['["tourism"~"^(attraction|museum|gallery|viewpoint)$"]']],restaurants:['Restaurants',['["amenity"~"^(restaurant|cafe|fast_food)$"]']],hotels:['Hotels',['["tourism"~"^(hotel|guest_house|hostel|apartment)$"]']],activities:['Activities',['["leisure"~"^(park|garden|water_park)$"]','["tourism"~"^(theme_park|zoo|aquarium)$"]']]};
+const hav=(a,b,c,d)=>{const r=Math.PI/180,x=Math.sin((c-a)*r/2)**2+Math.cos(a*r)*Math.cos(c*r)*Math.sin((d-b)*r/2)**2;return 12742*Math.asin(Math.sqrt(x))};
+const LJS='https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js',LCSS='https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css';
+function MapView({center,items,selId,onPick}){
+ const ref=useRef(),map=useRef(),lay=useRef();const [st,setSt]=useState('loading');
+ useEffect(()=>{let dead=false;loadCss(LCSS);loadScript(LJS).then(()=>{if(dead||!ref.current)return;const L=window.L;map.current=L.map(ref.current).setView([center.lat,center.lon],13);
+  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap contributors'}).addTo(map.current);lay.current=L.layerGroup().addTo(map.current);setSt('ready')}).catch(()=>setSt('fail'));
+  return()=>{dead=true;if(map.current){map.current.remove();map.current=null}}},[]);
+ useEffect(()=>{if(st!=='ready'||!map.current)return;const L=window.L;lay.current.clearLayers();const pts=[[center.lat,center.lon]];
+  L.circleMarker([center.lat,center.lon],{radius:9,color:'#A93C22',fillColor:'#A93C22',fillOpacity:.9,weight:2}).bindTooltip('Search centre').addTo(lay.current);
+  items.forEach(p=>{pts.push([p.lat,p.lon]);const on=p.id===selId;L.circleMarker([p.lat,p.lon],{radius:on?10:7,color:on?'#1D5FD1':'#0E6F66',fillColor:on?'#1D5FD1':'#0E6F66',fillOpacity:.85,weight:2}).bindTooltip(p.name).on('click',()=>onPick(p.id)).addTo(lay.current)});
+  map.current.invalidateSize();if(items.length)map.current.fitBounds(L.latLngBounds(pts),{padding:[24,24],maxZoom:15});else map.current.setView([center.lat,center.lon],13)},[st,center,items,selId]);
+ return html`<div><div ref=${ref} className="map" role="region" aria-label="Map of results"></div>${st==='fail'?html`<p className="note" style=${{marginTop:8}}>The interactive map could not load here. Results are still listed below, each with a link to open it in OpenStreetMap.</p>`:null}</div>`}
+function Explore({S,A,U}){
+ const cur=S.settings.currency;const [q,setQ]=useState('');const [cands,setCands]=useState([]);const [ctr,setCtr]=useState(null);const [kind,setKind]=useState('attractions');const [items,setItems]=useState([]);const [busy,setBusy]=useState(false);const [err,setErr]=useState('');const [selId,setSelId]=useState('');const [tab,setTab]=useState('discover');const [route,setRoute]=useState(null);const [rad,setRad]=useState(2000);
+ const net=async(u,o)=>{const r=await fetch(u,o);if(!r.ok)throw new Error('HTTP '+r.status);return r.json()};
+ const search=async e=>{e.preventDefault();if(!q.trim())return;setBusy(true);setErr('');setCands([]);setItems([]);setSelId('');
+  try{const r=await net('https://nominatim.openstreetmap.org/search?format=jsonv2&limit=5&q='+encodeURIComponent(q.trim()));if(!r.length){setErr('No place found for "'+q.trim()+'". Try a city name.');setBusy(false);return}
+   if(r.length===1)pick(r[0]);else setCands(r)}catch(x){setErr("Couldn't reach the OpenStreetMap search service. The Claude preview blocks outside services, so this works on your own page. Check your connection too.")}setBusy(false)};
+ const load=async(c,k,r)=>{setBusy(true);setErr('');setSelId('');setRoute(null);
+  const query='[out:json][timeout:25];('+KINDS[k][1].map(f=>'nwr'+f+'(around:'+r+','+c.lat+','+c.lon+');').join('')+');out center tags 80;';
+  try{const j=await net('https://overpass-api.de/api/interpreter',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:'data='+encodeURIComponent(query)});
+   const out=j.elements.filter(e=>e.tags&&e.tags.name&&(e.lat||e.center)).map(e=>{const lat=e.lat||e.center.lat,lon=e.lon||e.center.lon,t=e.tags;return {id:e.type+e.id,name:t.name,kind:k,lat,lon,dist:hav(c.lat,c.lon,lat,lon),sub:t.cuisine?t.cuisine.replace(/;/g,', '):(t.tourism||t.amenity||t.leisure||'').replace(/_/g,' '),web:t.website||t['contact:website']||'',phone:t.phone||t['contact:phone']||'',hours:t.opening_hours||'',addr:[t['addr:housenumber'],t['addr:street'],t['addr:city']].filter(Boolean).join(' ')}}).sort((a,b)=>a.dist-b.dist).slice(0,40);
+   setItems(out);if(!out.length)setErr('No '+KINDS[k][0].toLowerCase()+' with names found within '+(r/1000)+' km in OpenStreetMap. Try a wider radius.')}catch(x){setErr("Couldn't load places from OpenStreetMap right now. Try again in a moment.")}setBusy(false)};
+ const pick=r=>{const c={lat:+r.lat,lon:+r.lon,name:r.display_name.split(',').slice(0,2).join(',')};setCtr(c);setCands([]);load(c,kind,rad)};
+ const changeKind=k=>{setKind(k);if(ctr)load(ctr,k,rad)};const changeRad=r=>{setRad(r);if(ctr)load(ctr,kind,r)};
+ const sel=items.find(i=>i.id===selId);const saved=id=>S.places.some(p=>p.id===id);
+ const drive=async p=>{setRoute({id:p.id,busy:true});try{const j=await net('https://router.project-osrm.org/route/v1/driving/'+ctr.lon+','+ctr.lat+';'+p.lon+','+p.lat+'?overview=false');const r=j.routes&&j.routes[0];setRoute(r?{id:p.id,km:r.distance/1000,min:Math.round(r.duration/60)}:{id:p.id,err:'No road route found'})}catch(x){setRoute({id:p.id,err:"Couldn't get a driving route"})}};
+ const links=p=>html`<div className="rowf" style=${{gap:8}}><a className="btn sm" target="_blank" rel="noopener" href=${'https://www.google.com/maps/dir/?api=1&destination='+p.lat+','+p.lon}>Directions</a><a className="btn sm" target="_blank" rel="noopener" href=${'https://www.openstreetmap.org/?mlat='+p.lat+'&mlon='+p.lon+'#map=17/'+p.lat+'/'+p.lon}>Open map</a>${p.web?html`<a className="btn sm" target="_blank" rel="noopener" href=${/^https?:/.test(p.web)?p.web:'https://'+p.web}>Website</a>`:null}</div>`;
+ return html`<div className="stack" style=${{gap:'14px'}}><div role="tablist" className="tabs">${[['discover','Discover'],['saved','Saved ('+S.places.length+')']].map(v=>html`<button key=${v[0]} role="tab" className="tab" aria-selected=${tab===v[0]} onClick=${()=>setTab(v[0])}>${v[1]}</button>`)}</div>
+ ${tab==='discover'?html`<div className="stack">
+  <div className="note">Places, map and distances come from OpenStreetMap, a free community map. It does not provide ratings, prices or hotel availability, so none are shown. Cost estimates are yours to enter on saved places.</div>
+  <form className="ask" onSubmit=${search}><label className="sr" htmlFor="dest">Search for a destination</label><input id="dest" value=${q} onChange=${e=>setQ(e.target.value)} placeholder="Search a city or area, for example Lagos"/><button className="btn pri sm" type="submit" disabled=${busy}>Search</button></form>
+  ${cands.length?html`<div className="card flush"><div className="list">${cands.map(c=>html`<button key=${c.place_id} className="item" style=${{width:'100%',background:'none',border:0,borderTop:'1px solid var(--line)',textAlign:'left'}} onClick=${()=>pick(c)}><div className="body"><div className="tt">${c.display_name.split(',').slice(0,2).join(',')}</div><div className="cap muted">${c.display_name.split(',').slice(2).join(',').trim().slice(0,70)}</div></div><${Ic} n="r"/></button>`)}</div></div>`:null}
+  ${err?html`<div className="strip" role="alert"><${Ic} n="alert"/><div className="tx small">${err}</div></div>`:null}
+  ${ctr?html`<div className="rowf"><span className="pill pri">Around ${ctr.name}</span>${Object.keys(KINDS).map(k=>html`<button key=${k} className="chip" aria-pressed=${kind===k} onClick=${()=>changeKind(k)}>${KINDS[k][0]}</button>`)}</div>
+   <div className="rowf small"><label htmlFor="rad">Within</label><select id="rad" className="in" style=${{width:'auto'}} value=${rad} onChange=${e=>changeRad(+e.target.value)}>${[[1000,'1 km'],[2000,'2 km'],[5000,'5 km'],[10000,'10 km']].map(r=>html`<option key=${r[0]} value=${r[0]}>${r[1]}</option>`)}</select>${busy?html`<span className="muted">Loading…</span>`:null}</div>
+   <${MapView} center=${ctr} items=${items} selId=${selId} onPick=${setSelId}/>
+   ${sel?html`<div className="card stack"><div><h2 style=${{margin:0}}>${sel.name}</h2><div className="small muted">${sel.sub}${sel.addr?' · '+sel.addr:''}</div></div>
+    <div className="small num">${sel.dist.toFixed(sel.dist<10?1:0)} km in a straight line from the centre${route&&route.id===sel.id&&route.km?html` · <b>${route.km.toFixed(1)} km by road, about ${route.min} min</b>`:''}</div>
+    ${sel.hours?html`<div className="small muted">Hours: ${sel.hours}</div>`:null}${sel.phone?html`<div className="small muted">Phone: ${sel.phone}</div>`:null}${route&&route.id===sel.id&&route.err?html`<div className="small" style=${{color:'var(--err)'}}>${route.err}</div>`:null}
+    <div className="rowf"><button className=${'btn sm '+(saved(sel.id)?'soft':'pri')} onClick=${()=>saved(sel.id)?A.deletePlace(sel.id):A.savePlace({...sel,dest:ctr.name})}>${saved(sel.id)?'Saved. Remove':'Save place'}</button><button className="btn sm" onClick=${()=>drive(sel)} disabled=${!!(route&&route.busy)}>Get driving distance</button>${S.trips.length?html`<button className="btn sm" onClick=${()=>{if(!saved(sel.id))A.savePlace({...sel,dest:ctr.name});U.open('place',{id:sel.id})}}>Add to itinerary</button>`:null}</div>${links(sel)}</div>`:null}
+   <div className="card flush">${items.length?html`<div className="list">${items.map(p=>html`<button key=${p.id} className="item" style=${{width:'100%',background:p.id===selId?'var(--primary-soft)':'none',border:0,borderTop:'1px solid var(--line)',textAlign:'left'}} onClick=${()=>setSelId(p.id)}><div className="body"><div className="tt">${p.name}</div><div className="cap muted">${p.sub}</div></div><span className="cap num muted">${p.dist.toFixed(1)} km</span></button>`)}</div>`:html`<${Empty} t=${busy?'Loading…':'No results yet'} s=${busy?'Asking OpenStreetMap.':'Choose a category or widen the radius.'}/>`}</div>`:null}</div>`:null}
+ ${tab==='saved'?html`<div className="stack">${S.places.length?S.places.map(p=>html`<div key=${p.id} className="card stack"><div className="rowf" style=${{justifyContent:'space-between',flexWrap:'nowrap'}}><div style=${{minWidth:0}}><h2 style=${{margin:0,overflowWrap:'anywhere'}}>${p.name}</h2><div className="cap muted">${KINDS[p.kind]?KINDS[p.kind][0]:''} · ${p.dest}</div></div><button className="ibtn sm" aria-label=${'Remove '+p.name} onClick=${()=>A.deletePlace(p.id)}><${Ic} n="trash" s=${18}/></button></div>
+    <div className="field"><label htmlFor=${'est-'+p.id}>Your cost estimate (${cur})</label><input id=${'est-'+p.id} className="in" type="number" min="0" step="0.01" value=${p.est||''} onChange=${e=>A.updPlace(p.id,{est:e.target.value})} placeholder="Optional"/></div>
+    <div className="rowf">${S.trips.length?html`<button className="btn sm pri" onClick=${()=>U.open('place',{id:p.id})}>Add to itinerary</button>`:null}</div>${links(p)}</div>`):html`<div className="card"><${Empty} t="No saved places" s="Save places from Discover to plan with them later."/></div>`}</div>`:null}</div>`}
+
 /* ---------- App shell ---------- */
-const NAV=[['home','Home','home','Today'],['assistant','Assistant','spark','Today'],['planner','Planner','cal','Plan'],['reminders','Reminders','bell','Plan'],['budget','Budget','wallet','Money and travel'],['travel','Travel','plane','Money and travel'],['prefs','Settings','gear','You']];
-const TITLES={home:'Home',assistant:'Assistant',planner:'Planner',reminders:'Reminders',budget:'Budget',travel:'Travel',prefs:'Settings'};
+const NAV=[['home','Home','home','Today'],['assistant','Assistant','spark','Today'],['planner','Planner','cal','Plan'],['projects','Projects','folder','Plan'],['goals','Goals','target','Plan'],['reminders','Reminders','bell','Plan'],['budget','Budget','wallet','Money and travel'],['travel','Travel','plane','Money and travel'],['explore','Explore','compass','Money and travel'],['documents','Documents','file','Library'],['prefs','Settings','gear','You']];
+const TITLES={home:'Home',assistant:'Assistant',planner:'Planner',projects:'Projects',goals:'Goals and habits',reminders:'Reminders',budget:'Budget',travel:'Travel',explore:'Explore',documents:'Documents',prefs:'Settings'};
 const getRoute=()=>{const h=(location.hash||'').slice(1);return NAV.some(n=>n[0]===h)?h:'home'};
 
 function App(){
  const [S,setS]=useState(load);const [route,setRoute]=useState(getRoute);const [sheet,setSheet]=useState(null);const [toast,setToast]=useState(null);
- const [seedQ,setSeedQ]=useState('');const [sel,setSel]=useState(null);const tt=useRef();
+ const [seedQ,setSeedQ]=useState('');const [sel,setSel]=useState(null);const [selP,setSelP]=useState(null);const tt=useRef();
  useEffect(()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}},[S]);
  useEffect(()=>{const r=document.documentElement;if(S.settings.theme==='system')r.removeAttribute('data-theme');else r.setAttribute('data-theme',S.settings.theme)},[S.settings.theme]);
  useEffect(()=>{const h=()=>setRoute(getRoute());window.addEventListener('hashchange',h);return()=>window.removeEventListener('hashchange',h)},[]);
  const say=(msg,undo)=>{setToast({msg,undo});clearTimeout(tt.current);tt.current=setTimeout(()=>setToast(null),6000)};
- const go=(r,x)=>{if(r==='assistant')setSeedQ(x||'');if(r==='travel')setSel(x||null);location.hash=r;setRoute(r);setSheet(null);window.scrollTo(0,0)};
+ const go=(r,x)=>{if(r==='assistant')setSeedQ(x||'');if(r==='travel')setSel(x||null);if(r==='projects')setSelP(x||null);location.hash=r;setRoute(r);setSheet(null);window.scrollTo(0,0)};
  const upd=f=>setS(s=>f(s));
  const A={
   setSettings:p=>upd(s=>({...s,settings:{...s.settings,...p}})),
   chat:f=>upd(s=>({...s,chat:f(s.chat).slice(-40)})),
-  addTask:(d,quiet)=>{const id=uid();upd(s=>({...s,tasks:[...s.tasks,{id,title:d.title,due:d.due||today(),priority:d.priority||'med',done:false,amount:d.amount?+d.amount:undefined}]}));if(!quiet)say('Task added');return id},
+  addTask:(d,quiet)=>{const id=uid();upd(s=>({...s,tasks:[...s.tasks,{id,title:d.title,due:d.due||today(),priority:d.priority||'med',done:false,amount:d.amount?+d.amount:undefined,project:d.project||undefined,parent:d.parent||undefined}]}));if(!quiet)say('Task added');return id},
   toggleTask:id=>{const t=S.tasks.find(x=>x.id===id);upd(s=>({...s,tasks:s.tasks.map(x=>x.id===id?{...x,done:!x.done}:x)}));if(t&&!t.done)say('Done: '+t.title,()=>upd(s=>({...s,tasks:s.tasks.map(x=>x.id===id?{...x,done:false}:x)})))},
-  deleteTask:(id,quiet)=>{const t=S.tasks.find(x=>x.id===id);upd(s=>({...s,tasks:s.tasks.filter(x=>x.id!==id)}));if(!quiet&&t)say('Task deleted',()=>upd(s=>({...s,tasks:[...s.tasks,t]})))},
-  addTx:(d,quiet)=>{const id=uid();upd(s=>({...s,expenses:[...s.expenses,{id,type:d.type||'expense',title:d.title,amount:+d.amount,cat:d.type==='income'?'Income':(d.cat||'Other'),date:d.date||today()}]}));if(!quiet)say('Transaction added');return id},
+  deleteTask:(id,quiet)=>{const t=S.tasks.find(x=>x.id===id),kids=S.tasks.filter(x=>x.parent===id);upd(s=>({...s,tasks:s.tasks.filter(x=>x.id!==id&&x.parent!==id)}));if(!quiet&&t)say('Task deleted',()=>upd(s=>({...s,tasks:[...s.tasks,t,...kids]})))},
+  addTx:(d,quiet)=>{const id=uid();upd(s=>({...s,expenses:[...s.expenses,{id,type:d.type||'expense',title:d.title,amount:+d.amount,cat:d.type==='income'?'Income':(d.cat||'Other'),date:d.date||today(),project:d.project||undefined,orig:d.orig,doc:d.doc}]}));if(!quiet)say('Transaction added');return id},
   deleteTx:(id,quiet)=>{const e=S.expenses.find(x=>x.id===id);upd(s=>({...s,expenses:s.expenses.filter(x=>x.id!==id),trips:e&&e.booking?s.trips.map(t=>({...t,bookings:t.bookings.map(b=>b.id===e.booking?{...b,paid:false}:b)})):s.trips}));if(!quiet&&e)say('Transaction deleted',()=>upd(s=>({...s,expenses:[...s.expenses,e]})))},
   setAlloc:(c,v)=>upd(s=>({...s,alloc:{...s.alloc,[c]:v}})),
-  addReminder:(d,quiet)=>{const id=uid();upd(s=>({...s,reminders:[...s.reminders,{id,title:d.title,date:d.date||today(),time:d.time||'09:00',repeat:d.repeat||'none',important:!!d.important,done:false}]}));if(!quiet)say('Reminder set');return id},
+  addReminder:(d,quiet)=>{const id=uid();upd(s=>({...s,reminders:[...s.reminders,{id,title:d.title,date:d.date||today(),time:d.time||'09:00',repeat:d.repeat||'none',important:!!d.important,done:false,project:d.project||undefined,habit:d.habit}]}));if(!quiet)say('Reminder set');return id},
   deleteReminder:(id,quiet)=>{upd(s=>({...s,reminders:s.reminders.filter(x=>x.id!==id)}));if(!quiet)say('Reminder deleted')},
   completeReminder:id=>upd(s=>({...s,reminders:s.reminders.map(r=>{if(r.id!==id)return r;if(r.done)return {...r,done:false};if(r.repeat==='none')return {...r,done:true};
     const n=r.repeat==='daily'?1:r.repeat==='weekly'?7:30;let d=addDays(r.date,n);while(d<today())d=addDays(d,n);return {...r,date:d}})})),
@@ -631,7 +868,24 @@ function App(){
    return {...s,trips:s.trips.map(x=>x.id===tid?{...x,bookings:x.bookings.map(y=>y.id===bid?{...y,paid}:y)}:x),
     expenses:paid?[...s.expenses,{id:uid(),type:'expense',title:b.title,amount:b.cost,cat:b.cat,date:today(),trip:tid,booking:bid}]:s.expenses.filter(e=>e.booking!==bid)}}),
   removeBooking:(tid,bid)=>upd(s=>({...s,trips:s.trips.map(x=>x.id===tid?{...x,bookings:x.bookings.filter(y=>y.id!==bid)}:x),expenses:s.expenses.filter(e=>e.booking!==bid)})),
-  reset:withSample=>{const f=seed();setS(withSample?f:{...f,tasks:[],expenses:[],reminders:[],trips:[],alloc:{Flights:0,Stay:0,Transport:0,Food:0,'Gifts & shopping':0,Outfits:0,Other:0},chat:f.chat,settings:{...f.settings}})}};
+  addProject:(d,quiet)=>{const id=uid();upd(s=>({...s,projects:[...s.projects,{id,name:d.name,desc:d.desc||'',start:d.start||today(),deadline:d.deadline||'',priority:d.priority||'med',status:'active',budget:+d.budget||0,notes:'',milestones:[]}]}));if(!quiet)say('Project created');return id},
+  updProject:(id,p)=>upd(s=>({...s,projects:s.projects.map(x=>x.id===id?{...x,...p}:x)})),
+  projF:(id,f)=>upd(s=>({...s,projects:s.projects.map(x=>x.id===id?f(x):x)})),
+  deleteProject:(id,quiet)=>{upd(s=>({...s,projects:s.projects.filter(x=>x.id!==id),tasks:s.tasks.map(t=>t.project===id?{...t,project:undefined}:t),expenses:s.expenses.map(e=>e.project===id?{...e,project:undefined}:e),reminders:s.reminders.map(r=>r.project===id?{...r,project:undefined}:r),docs:s.docs.map(d=>d.project===id?{...d,project:''}:d)}));if(!quiet)say('Project deleted')},
+  addGoal:d=>{const id=uid();upd(s=>({...s,goals:[...s.goals,{id,title:d.title,why:d.why||'',target:+d.target||0,unit:d.unit||'',current:+d.current||0,deadline:d.deadline||'',done:false,milestones:[],log:[]}]}));say('Goal created');return id},
+  goalF:(id,f)=>upd(s=>({...s,goals:s.goals.map(x=>x.id===id?f(x):x)})),
+  logGoal:(id,delta)=>upd(s=>({...s,goals:s.goals.map(g=>{if(g.id!==id)return g;const total=Math.round((g.current+delta)*100)/100;return {...g,current:total,log:[...(g.log||[]),{id:uid(),date:today(),delta,total}]}})})),
+  deleteGoal:id=>upd(s=>({...s,goals:s.goals.filter(g=>g.id!==id),habits:s.habits.map(h=>h.goal===id?{...h,goal:''}:h)})),
+  addHabit:d=>{const id=uid();upd(s=>({...s,habits:[...s.habits,{id,title:d.title,goal:d.goal||'',perWeek:+d.perWeek||7,logs:{},created:today()}],reminders:d.time?[...s.reminders,{id:uid(),title:'Habit: '+d.title,date:today(),time:d.time,repeat:'daily',important:false,done:false,habit:id}]:s.reminders}));say('Habit created');return id},
+  toggleHabit:(id,date)=>upd(s=>({...s,habits:s.habits.map(h=>{if(h.id!==id)return h;const logs={...h.logs};if(logs[date])delete logs[date];else logs[date]=true;return {...h,logs}})})),
+  deleteHabit:id=>upd(s=>({...s,habits:s.habits.filter(h=>h.id!==id),reminders:s.reminders.filter(r=>r.habit!==id)})),
+  addDoc:d=>upd(s=>({...s,docs:[...s.docs,d]})),
+  updDoc:(id,p)=>upd(s=>({...s,docs:s.docs.map(d=>d.id===id?{...d,...p}:d)})),
+  deleteDoc:id=>{fdel(id).catch(()=>{});upd(s=>({...s,docs:s.docs.filter(d=>d.id!==id)}));say('Document deleted')},
+  savePlace:p=>upd(s=>s.places.some(x=>x.id===p.id)?s:{...s,places:[...s.places,p]}),
+  updPlace:(id,p)=>upd(s=>({...s,places:s.places.map(x=>x.id===id?{...x,...p}:x)})),
+  deletePlace:id=>upd(s=>({...s,places:s.places.filter(x=>x.id!==id)})),
+  reset:withSample=>{const f=seed();setS(withSample?f:{...f,tasks:[],expenses:[],reminders:[],trips:[],projects:[],goals:[],habits:[],docs:[],places:[],alloc:{Flights:0,Stay:0,Transport:0,Food:0,'Gifts & shopping':0,Outfits:0,Other:0},chat:f.chat,settings:{...f.settings}})}};
  const U={go,open:(type,ctx)=>setSheet({type,ctx:ctx||{}}),toast:say};
  const T=today();const bell=(S.settings.notif.reminders?S.reminders.filter(r=>!r.done&&r.date<=T).length:0);
  const cur=S.settings.currency,C=(sheet&&sheet.ctx)||{};
@@ -639,18 +893,25 @@ function App(){
  const catOpts=CATS.map(c=>[c,c]);
  let sh=null;
  if(sheet){const t=sheet.type;
-  if(t==='task')sh=html`<${Sheet} title="New task" onClose=${close}><${Form} submit="Add task" onCancel=${close} initial=${{due:C.date||T,priority:'med'}} fields=${[{k:'title',label:'What needs doing?',req:1,full:1},{k:'due',label:'Due',type:'date',req:1},{k:'priority',label:'Priority',options:[['med','Normal'],['high','High'],['low','Low']]},{k:'amount',label:'Amount, if it is a payment',type:'number'}]} onSubmit=${v=>{A.addTask(v);close()}}/><//>`;
-  if(t==='tx')sh=html`<${Sheet} title="Add transaction" onClose=${close}><${Form} submit="Add" onCancel=${close} initial=${{date:T,cat:'Food'}} fields=${[{k:'type',label:'Type',options:[['expense','Expense'],['income','Income']]},{k:'title',label:'Description',req:1},{k:'amount',label:'Amount ('+SYM[cur]+')',type:'number',req:1},{k:'cat',label:'Category (expenses)',options:catOpts},{k:'date',label:'Date',type:'date',req:1}]} onSubmit=${v=>{if(!(+v.amount>0))return;A.addTx(v);close()}}/><//>`;
-  if(t==='reminder')sh=html`<${Sheet} title="New reminder" onClose=${close}><${Form} submit="Set reminder" onCancel=${close} initial=${{date:T,time:'09:00'}} fields=${[{k:'title',label:'Remind me to',req:1,full:1},{k:'date',label:'Date',type:'date',req:1},{k:'time',label:'Time',type:'time',req:1},{k:'repeat',label:'Repeats',options:[['none','Does not repeat'],['daily','Daily'],['weekly','Weekly'],['monthly','Monthly']]},{k:'important',label:'Mark as important',type:'checkbox'}]} onSubmit=${v=>{A.addReminder(v);close()}}/><//>`;
+  if(t==='task')sh=html`<${Sheet} title=${C.parent?'New subtask':'New task'} onClose=${close}><${Form} submit="Add task" onCancel=${close} initial=${{due:C.date||T,priority:'med',project:C.project||''}} fields=${[{k:'title',label:'What needs doing?',req:1,full:1},{k:'due',label:'Due',type:'date',req:1},{k:'priority',label:'Priority',options:[['med','Normal'],['high','High'],['low','Low']]},{k:'project',label:'Project',options:[['','None'],...S.projects.filter(p=>p.status==='active').map(p=>[p.id,p.name])]},{k:'amount',label:'Amount, if a payment',type:'number'}]} onSubmit=${v=>{A.addTask({...v,parent:C.parent});close()}}/><//>`;
+  if(t==='tx')sh=html`<${Sheet} title="Add transaction" onClose=${close}><${Form} submit="Add" onCancel=${close} initial=${{date:T,cat:'Food',project:C.project||''}} fields=${[{k:'type',label:'Type',options:[['expense','Expense'],['income','Income']]},{k:'title',label:'Description',req:1},{k:'amount',label:'Amount ('+SYM[cur]+')',type:'number',req:1},{k:'cat',label:'Category (expenses)',options:catOpts},{k:'project',label:'Project',options:[['','None'],...S.projects.filter(p=>p.status==='active').map(p=>[p.id,p.name])]},{k:'date',label:'Date',type:'date',req:1}]} onSubmit=${v=>{if(!(+v.amount>0))return;A.addTx(v);close()}}/><//>`;
+  if(t==='reminder')sh=html`<${Sheet} title="New reminder" onClose=${close}><${Form} submit="Set reminder" onCancel=${close} initial=${{date:T,time:'09:00',project:C.project||''}} fields=${[{k:'title',label:'Remind me to',req:1,full:1},{k:'date',label:'Date',type:'date',req:1},{k:'time',label:'Time',type:'time',req:1},{k:'repeat',label:'Repeats',options:[['none','Does not repeat'],['daily','Daily'],['weekly','Weekly'],['monthly','Monthly']]},{k:'project',label:'Project',options:[['','None'],...S.projects.filter(p=>p.status==='active').map(p=>[p.id,p.name])]},{k:'important',label:'Mark as important',type:'checkbox'}]} onSubmit=${v=>{A.addReminder(v);close()}}/><//>`;
   if(t==='trip')sh=html`<${Sheet} title="New trip" onClose=${close}><${Form} submit="Create trip" onCancel=${close} initial=${{start:addDays(T,30),end:addDays(T,37)}} fields=${[{k:'name',label:'Trip name',req:1,full:1,ph:'Summer in Accra'},{k:'dest',label:'Destination',req:1,full:1},{k:'start',label:'Start',type:'date',req:1},{k:'end',label:'End',type:'date',req:1},{k:'budget',label:'Budget ('+SYM[cur]+')',type:'number'}]} onSubmit=${v=>{if(v.end<v.start){say('The end date must be after the start date');return}const id=A.addTrip(v);close();go('travel',id)}}/><//>`;
   if(t==='booking')sh=html`<${Sheet} title="Add booking" onClose=${close}><${Form} submit="Add booking" onCancel=${close} fields=${[{k:'type',label:'Type',options:[['Flight','Flight'],['Stay','Accommodation'],['Transport','Transport'],['Other','Other']]},{k:'title',label:'Details',req:1},{k:'cost',label:'Cost ('+SYM[cur]+')',type:'number',req:1},{k:'paid',label:'Already paid',type:'checkbox'}]}
    onSubmit=${v=>{const cat=v.type==='Flight'?'Flights':v.type==='Stay'?'Stay':v.type==='Transport'?'Transport':'Other';const b={id:uid(),type:v.type,title:v.title,cost:+v.cost||0,paid:false,cat};A.updTrip(C.trip,t=>({...t,bookings:[...t.bookings,b]}));if(v.paid)setTimeout(()=>A.togglePaid(C.trip,b.id),0);close()}}/><//>`;
   if(t==='itin')sh=html`<${Sheet} title="Add plan" onClose=${close}><${Form} submit="Add" onCancel=${close} initial=${{date:C.date,time:'10:00'}} fields=${[{k:'title',label:'What is happening?',req:1,full:1},{k:'date',label:'Day',type:'date',req:1},{k:'time',label:'Time',type:'time',req:1}]} onSubmit=${v=>{A.updTrip(C.trip,t=>({...t,itinerary:[...t.itinerary,{id:uid(),...v}]}));close()}}/><//>`;
-  if(t==='menu')sh=html`<${Sheet} title="Menu" onClose=${close}><div className="stack">${[['reminders','Reminders','bell'],['prefs','Settings','gear']].map(n=>html`<button key=${n[0]} className="btn" style=${{justifyContent:'flex-start'}} onClick=${()=>go(n[0])}><${Ic} n=${n[2]}/> ${n[1]}</button>`)}
+  if(t==='project'){const ed=C.edit?S.projects.find(x=>x.id===C.edit):null;sh=html`<${Sheet} title=${ed?'Edit project':'New project'} onClose=${close}><${Form} submit=${ed?'Save':'Create project'} onCancel=${close} initial=${ed?{name:ed.name,desc:ed.desc,start:ed.start,deadline:ed.deadline,priority:ed.priority,budget:ed.budget||''}:{start:T}} fields=${[{k:'name',label:'Project name',req:1,full:1,ph:'Wedding, house move, new job'},{k:'desc',label:'Description',type:'textarea',full:1},{k:'start',label:'Start date',type:'date'},{k:'deadline',label:'Deadline',type:'date'},{k:'priority',label:'Priority',options:[['med','Normal'],['high','High'],['low','Low']]},{k:'budget',label:'Budget ('+SYM[cur]+')',type:'number'}]}
+   onSubmit=${v=>{if(v.deadline&&v.start&&v.deadline<v.start){say('The deadline must be after the start date');return}if(ed){A.updProject(ed.id,{name:v.name,desc:v.desc,start:v.start,deadline:v.deadline,priority:v.priority,budget:+v.budget||0});close();say('Project saved')}else{const id=A.addProject(v);close();go('projects',id)}}}/><//>`}
+  if(t==='goal')sh=html`<${Sheet} title="New goal" onClose=${close}><${Form} submit="Create goal" onCancel=${close} initial=${{current:'0',unit:''}} fields=${[{k:'title',label:'Goal',req:1,full:1,ph:'Save 2,400, run 5 km, read 12 books'},{k:'why',label:'Why it matters',full:1},{k:'target',label:'Target',type:'number',req:1},{k:'unit',label:'Unit',ph:'GBP, km, books'},{k:'current',label:'Starting point',type:'number'},{k:'deadline',label:'Deadline',type:'date'}]} onSubmit=${v=>{if(!(+v.target>0)){say('Set a target above zero');return}A.addGoal(v);close()}}/><//>`;
+  if(t==='habit')sh=html`<${Sheet} title="New habit" onClose=${close}><${Form} submit="Create habit" onCancel=${close} initial=${{perWeek:'7'}} fields=${[{k:'title',label:'Habit',req:1,full:1,ph:'Walk for 20 minutes'},{k:'perWeek',label:'How often',options:[['7','Every day'],['6','6 days a week'],['5','5 days a week'],['4','4 days a week'],['3','3 days a week'],['2','2 days a week'],['1','Once a week']]},{k:'goal',label:'Linked goal',options:[['','None'],...S.goals.map(g=>[g.id,g.title])]},{k:'time',label:'Daily reminder time (optional)',type:'time',full:1}]} onSubmit=${v=>{A.addHabit(v);close()}}/><//>`;
+  if(t==='logprog'){const g=S.goals.find(x=>x.id===C.id);if(g)sh=html`<${Sheet} title=${'Log progress: '+g.title} onClose=${close}><${Form} submit="Log" onCancel=${close} fields=${[{k:'delta',label:'Amount to add ('+g.unit+'). Use a minus to take away.',type:'number',req:1,full:1}]} onSubmit=${v=>{const n=parseFloat(v.delta);if(!n)return;A.logGoal(g.id,n);close();say('Progress logged')}}/><//>`}
+  if(t==='doc')sh=html`<${DocSheet} id=${C.id} S=${S} A=${A} U=${U} close=${close}/>`;
+  if(t==='place'){const pl=S.places.find(x=>x.id===C.id);if(pl)sh=html`<${Sheet} title=${'Add to itinerary: '+pl.name} onClose=${close}><${Form} submit="Add to itinerary" onCancel=${close} initial=${{trip:S.trips[0]?S.trips[0].id:'',date:(S.trips[0]||{}).start||T,time:'10:00'}} fields=${[{k:'trip',label:'Trip',options:S.trips.map(x=>[x.id,x.name]),full:1},{k:'date',label:'Day',type:'date',req:1},{k:'time',label:'Time',type:'time',req:1}]} onSubmit=${v=>{A.updTrip(v.trip,x=>({...x,itinerary:[...x.itinerary,{id:uid(),date:v.date,time:v.time,title:'Visit '+pl.name,cost:pl.est?+pl.est:undefined}]}));close();say('Added to the itinerary')}}/><//>`}
+  if(t==='menu')sh=html`<${Sheet} title="Menu" onClose=${close}><div className="stack">${[['projects','Projects','folder'],['goals','Goals and habits','target'],['explore','Explore','compass'],['documents','Documents','file'],['reminders','Reminders','bell'],['prefs','Settings','gear']].map(n=>html`<button key=${n[0]} className="btn" style=${{justifyContent:'flex-start'}} onClick=${()=>go(n[0])}><${Ic} n=${n[2]}/> ${n[1]}</button>`)}
    <button className="btn" style=${{justifyContent:'flex-start'}} onClick=${()=>{const dark=S.settings.theme==='dark'||(S.settings.theme==='system'&&matchMedia('(prefers-color-scheme: dark)').matches);A.setSettings({theme:dark?'light':'dark'})}}><${Ic} n="moon"/> Switch light and dark</button>
-   <p className="cap muted">Projects, Explore, Documents and Goals are not built in this prototype yet.</p></div><//>`}
+</div><//>`}
  const screen=route==='home'?html`<${Home} S=${S} A=${A} U=${U}/>`:route==='assistant'?html`<${Assistant} S=${S} A=${A} U=${U} seedQ=${seedQ}/>`:route==='planner'?html`<${Planner} S=${S} A=${A} U=${U}/>`
-  :route==='budget'?html`<${Budget} S=${S} A=${A} U=${U}/>`:route==='travel'?html`<${Travel} S=${S} A=${A} U=${U} sel=${sel} setSel=${setSel}/>`:route==='reminders'?html`<${Reminders} S=${S} A=${A} U=${U}/>`:html`<${Settings} S=${S} A=${A} U=${U}/>`;
+  :route==='budget'?html`<${Budget} S=${S} A=${A} U=${U}/>`:route==='travel'?html`<${Travel} S=${S} A=${A} U=${U} sel=${sel} setSel=${setSel}/>`:route==='projects'?html`<${Projects} S=${S} A=${A} U=${U} sel=${selP} setSel=${setSelP}/>`:route==='goals'?html`<${Goals} S=${S} A=${A} U=${U}/>`:route==='explore'?html`<${Explore} S=${S} A=${A} U=${U}/>`:route==='documents'?html`<${Documents} S=${S} A=${A} U=${U}/>`:route==='reminders'?html`<${Reminders} S=${S} A=${A} U=${U}/>`:html`<${Settings} S=${S} A=${A} U=${U}/>`;
  const groups=[...new Set(NAV.map(n=>n[3]))];
  const tabs=['home','planner','assistant','budget','travel'];
  const nb=n=>html`<${React.Fragment} key=${n[0]}>${nav1(n)}<//>`;
