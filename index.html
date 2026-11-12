@@ -254,6 +254,7 @@ body{margin:0;font-size:16px}[hidden]{display:none!important}</style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/htm@3.1.1/dist/htm.umd.js"></script>
+<script src="config.js"></script>
 <script>
 const {useState,useEffect,useMemo,useRef}=React;
 const html=htm.bind(React.createElement);
@@ -342,8 +343,9 @@ function ext(s){const T=today(),pid='proj1';
  if(!s.habits){const logs={};[1,2,3,5,6].forEach(i=>logs[addDays(T,-i)]=true);s.habits=[{id:'hab1',title:'Walk for 20 minutes',goal:'',perWeek:5,logs,created:addDays(T,-20)}]}
  if(!s.docs)s.docs=[];if(!s.places)s.places=[];return s}
 function seed(){return ext(seed0())}
-const KEY='lifelyn-demo-v1';
-function load(){try{const r=localStorage.getItem(KEY);if(r){const s=JSON.parse(r);if(s&&s.v===1)return ext(s)}}catch(e){}return seed()}
+const keyFor=o=>(o==='local'||o==='demo')?'lifelyn-demo-v1':'lifelyn-u-'+o;
+function emptyState(){const f=seed0();return {v:1,settings:{...f.settings,name:''},tasks:[],expenses:[],reminders:[],trips:[],projects:[],goals:[],habits:[],docs:[],places:[],alloc:{Flights:0,Stay:0,Transport:0,Food:0,'Gifts & shopping':0,Outfits:0,Other:0},chat:[f.chat[0]]}}
+function load(o){try{const r=localStorage.getItem(keyFor(o));if(r){const s=JSON.parse(r);if(s&&s.v===1)return ext(s)}}catch(e){}return (o==='local'||o==='demo')?seed():emptyState()}
 
 /* ---------- icons ---------- */
 const P={home:'M3 11l9-8 9 8v10a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z',cal:'M7 3v4M17 3v4M4 9h16M5 5h14a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z',
@@ -453,7 +455,7 @@ function Home({S,A,U}){
  const ask=e=>{e.preventDefault();if(!q.trim())return;U.go('assistant',q.trim());setQ('')};
  const unpaid=trip?trip.bookings.filter(b=>!b.paid):[];const projs=S.projects.filter(p=>p.status==='active').slice(0,3);
  return html`<div className="stack" style=${{gap:'20px'}}>
- <div className="hero"><div><h1 className="disp hello">${hi}, ${S.settings.name}</h1>
+ <div className="hero"><div><h1 className="disp hello">${hi}${S.settings.name?', '+S.settings.name:''}</h1>
   <p className="muted">${fmt(T,{weekday:'long',day:'numeric',month:'long'})}${trip?html` · <b>${diff(trip.start,T)>0?diff(trip.start,T)+' days to '+trip.name:trip.name+' is under way'}</b>`:''}</p></div>
   <form className="ask" onSubmit=${ask}><span aria-hidden="true" style=${{color:'var(--primary)'}}><${Ic} n="spark"/></span><label className="sr" htmlFor="homeask">Ask the assistant</label>
    <input id="homeask" value=${q} onChange=${e=>setQ(e.target.value)} placeholder="Ask or add: “remind me to call Aunty tomorrow at 6pm”"/><button className="btn pri sm" type="submit">Ask</button></form>
@@ -618,12 +620,13 @@ function Settings({S,A,U}){
   <div className="card"><h2>Appearance</h2><div className="rowf">${[['system','System','sun'],['light','Light','sun'],['dark','Dark','moon']].map(t=>html`<button key=${t[0]} className="chip" aria-pressed=${st.theme===t[0]} onClick=${()=>A.setSettings({theme:t[0]})}><${Ic} n=${t[2]} s=${16}/> ${t[1]}</button>`)}</div>
    <div className="sw" style=${{marginTop:10}}><div><div style=${{fontWeight:500}}>Reduce motion</div><div className="cap muted">Turns off animations in the app</div></div><button role="switch" aria-checked=${st.reduceMotion} aria-label="Reduce motion" onClick=${()=>A.setSettings({reduceMotion:!st.reduceMotion})}></button></div></div></div>
   <div className="col"><div className="card"><h2>Notifications</h2>${Sw("reminders","Reminder alerts","Show due reminders in the bell")}${Sw("digest","Morning summary","Preference saved only. Email is not connected.")}${Sw("assistant","Assistant suggestions","Show suggestions on Home")}</div>
-  <div className="card stack"><h2>Your data</h2><p className="small muted">Everything is stored in this browser only. There is no account, server or sync yet. Uploaded documents are kept in this browser's file storage and are not included in the JSON copy.</p>
+  <${AccountCard} S=${S} A=${A} U=${U}/>
+  <div className="card stack"><h2>Your data</h2><p className="small muted">${U.auth.mode==='in'?'Your data is saved to your account and also kept on this device so the app works offline. The JSON copy does not include uploaded documents.':'Everything is stored in this browser only. Sign in to an account to save it online. Uploaded documents are kept in this browser\'s file storage and are not included in the JSON copy.'}</p>
    <div className="rowf"><button className="btn" onClick=${()=>{const j=JSON.stringify(S,null,2);try{navigator.clipboard.writeText(j).then(()=>U.toast('Data copied to clipboard'),()=>setCp(j))}catch(e){setCp(j)}}}>Copy data as JSON</button>
-   <button className="btn" onClick=${()=>{A.reset(true);U.toast('Sample data restored')}}>Restore sample data</button>
+   ${U.auth.mode!=='in'?html`<button className="btn" onClick=${()=>{A.reset(true);U.toast('Sample data restored')}}>Restore sample data</button>`:null}
    ${!conf?html`<button className="btn danger" onClick=${()=>setConf(true)}>Clear everything</button>`:html`<button className="btn danger" onClick=${()=>{A.reset(false);setConf(false);U.toast('All data cleared')}}>Yes, clear everything</button><button className="btn" onClick=${()=>setConf(false)}>Keep it</button>`}</div>
    ${cp?html`<div className="field"><label htmlFor="cpt">Select and copy</label><textarea id="cpt" className="in" style=${{minHeight:120,padding:8}} readOnly value=${cp} onFocus=${e=>e.target.select()}></textarea></div>`:null}</div>
-  <p className="cap muted">Lifelyn is a front-end prototype. Email, push, real AI, bank data and bookings are not connected.</p></div></div>`}
+  <p className="cap muted">Email, push, real AI, bank data and bookings are not connected yet.</p></div></div>`}
 
 /* ---------- Milestone 2: shared helpers ---------- */
 const _sp={};
@@ -631,7 +634,8 @@ const loadScript=u=>_sp[u]||(_sp[u]=new Promise((res,rej)=>{const s=document.cre
 const loadCss=u=>{if(document.querySelector('link[data-u="'+u+'"]'))return;const l=document.createElement('link');l.rel='stylesheet';l.href=u;l.dataset.u=u;document.head.appendChild(l)};
 const idb=()=>new Promise((res,rej)=>{const r=indexedDB.open('lifelyn-files',1);r.onupgradeneeded=()=>r.result.createObjectStore('f');r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)});
 const fput=async(id,b)=>{const d=await idb();return new Promise((res,rej)=>{const t=d.transaction('f','readwrite');t.objectStore('f').put(b,id);t.oncomplete=res;t.onerror=()=>rej(t.error)})};
-const fget=async id=>{const d=await idb();return new Promise((res,rej)=>{const r=d.transaction('f').objectStore('f').get(id);r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)})};
+const fgetLocal=async id=>{const d=await idb();return new Promise((res,rej)=>{const r=d.transaction('f').objectStore('f').get(id);r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)})};
+const fget=async id=>{const l=await fgetLocal(id);if(l||!(SB&&UID))return l;const b=await remoteDownload(id);try{await fput(id,b)}catch(e){}return b};
 const fdel=async id=>{const d=await idb();return new Promise((res,rej)=>{const t=d.transaction('f','readwrite');t.objectStore('f').delete(id);t.oncomplete=res;t.onerror=()=>rej(t.error)})};
 const kb=n=>n>1048576?(n/1048576).toFixed(1)+' MB':Math.max(1,Math.round(n/1024))+' KB';
 const ptasks=(S,id)=>S.tasks.filter(t=>t.project===id);
@@ -752,7 +756,7 @@ function Documents({S,A,U}){
  const onFile=async e=>{const f=e.target.files&&e.target.files[0];e.target.value='';if(!f)return;
   if(!(f.type==='application/pdf'||f.type.startsWith('image/'))){U.toast('Choose a PDF or a photo');return}
   if(f.size>15*1048576){U.toast('That file is over 15 MB');return}
-  setBusy(true);const id=uid();try{await fput(id,f);A.addDoc({id,name:f.name||'Scanned document',mime:f.type,size:f.size,added:today(),type:'other',status:'new',fields:{},project:''});U.open('doc',{id})}catch(err){U.toast("This browser couldn't store the file. Private browsing can block file storage.")}setBusy(false)};
+  setBusy(true);const id=uid();try{await fput(id,f);A.addDoc({id,name:f.name||'Scanned document',mime:f.type,size:f.size,added:today(),type:'other',status:'new',fields:{},project:''});U.open('doc',{id});if(SB&&UID)remoteUpload(id,f).then(()=>A.updDoc(id,{remote:true})).catch(()=>U.toast('Saved here. Cloud upload will retry.'))}catch(err){U.toast("This browser couldn't store the file. Private browsing can block file storage.")}setBusy(false)};
  const docs=[...S.docs].sort((a,b)=>a.added<b.added?1:-1);
  return html`<div className="stack"><div className="note">Files are stored on this device only, inside this browser. PDFs are read here to suggest details. Photos are stored and shown, but reading text from photos needs an OCR service, which comes with the backend. You always check the details before anything is saved to your budget or trips.</div>
   <div className="rowf"><label className="btn pri" style=${{cursor:'pointer'}}><${Ic} n="upload" s=${18}/> Upload PDF or photo<input className="sr" type="file" id="updoc" accept="application/pdf,image/*" onChange=${onFile}/></label>
@@ -834,15 +838,111 @@ function Explore({S,A,U}){
     <div className="field"><label htmlFor=${'est-'+p.id}>Your cost estimate (${cur})</label><input id=${'est-'+p.id} className="in" type="number" min="0" step="0.01" value=${p.est||''} onChange=${e=>A.updPlace(p.id,{est:e.target.value})} placeholder="Optional"/></div>
     <div className="rowf">${S.trips.length?html`<button className="btn sm pri" onClick=${()=>U.open('place',{id:p.id})}>Add to itinerary</button>`:null}</div>${links(p)}</div>`):html`<div className="card"><${Empty} t="No saved places" s="Save places from Discover to plan with them later."/></div>`}</div>`:null}</div>`}
 
+/* ---------- Milestone 3: accounts, cloud database and file storage (Supabase) ---------- */
+const SBJS='https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js';
+let SB=null,UID=null;
+const COLL=['tasks','expenses','reminders','trips','projects','goals','habits','docs','places'];
+const DEF_ALLOC={Flights:0,Stay:0,Transport:0,Food:0,'Gifts & shopping':0,Outfits:0,Other:0};
+function jwtRole(k){try{return JSON.parse(atob(k.split('.')[1].replace(/-/g,'+').replace(/_/g,'/'))).role}catch(e){return null}}
+function cfgOk(c){return !!c&&!/^sb_secret_/.test(c.key||'')&&/^https:\/\/[a-z0-9-]+\.supabase\.(co|in)\/?$/.test(c.url||'')&&typeof c.key==='string'&&c.key.length>20&&jwtRole(c.key)!=='service_role'}
+function getCfg(){const w=window.LIFELYN_CONFIG;let c=w?{url:w.supabaseUrl,key:w.supabaseAnonKey}:null;if(!cfgOk(c)){try{c=JSON.parse(localStorage.getItem('lifelyn-cfg'))}catch(e){c=null}}return cfgOk(c)?{url:c.url.replace(/\/$/,''),key:c.key}:null}
+const remoteUpload=async(id,b)=>{const r=await SB.storage.from('lifelyn-documents').upload(UID+'/'+id,b,{upsert:true,contentType:b.type||'application/octet-stream'});if(r.error)throw r.error};
+const remoteDownload=async id=>{const r=await SB.storage.from('lifelyn-documents').download(UID+'/'+id);if(r.error)throw r.error;return r.data};
+const remoteRemove=async id=>{const r=await SB.storage.from('lifelyn-documents').remove([UID+'/'+id]);if(r.error)throw r.error};
+const fclear=()=>new Promise(res=>{try{const r=indexedDB.deleteDatabase('lifelyn-files');r.onsuccess=r.onerror=r.onblocked=()=>res()}catch(e){res()}});
+function applyRows(s,rows){const n={...s};for(const r of rows){if(r.kind==='alloc'){if(!r.deleted)n.alloc=r.data;continue}if(!COLL.includes(r.kind))continue;const arr=n[r.kind]||[];
+ if(r.deleted)n[r.kind]=arr.filter(x=>String(x.id)!==r.id);else{const i=arr.findIndex(x=>String(x.id)===r.id);n[r.kind]=i>=0?arr.map((x,j)=>j===i?r.data:x):[...arr,r.data]}}return n}
+const canonProfile=(p,tz)=>{const pr=p.prefs||{},nf=pr.notif||{};return {display_name:p.display_name||'',currency:p.currency||'GBP',week_start:p.week_start==null?1:p.week_start,theme:p.theme||'system',timezone:p.timezone||tz||'UTC',prefs:{reduceMotion:!!pr.reduceMotion,notif:{reminders:nf.reminders!==false,digest:!!nf.digest,assistant:nf.assistant!==false}}}};
+const profileOf=s=>canonProfile({display_name:s.name,currency:s.currency,week_start:s.weekStart,theme:s.theme,prefs:{reduceMotion:s.reduceMotion,notif:s.notif}},(()=>{try{return Intl.DateTimeFormat().resolvedOptions().timeZone}catch(e){return 'UTC'}})());
+const settingsOf=p=>({name:p.display_name,currency:p.currency,weekStart:p.week_start,theme:p.theme,reduceMotion:p.prefs.reduceMotion,notif:p.prefs.notif});
+/* Two-way sync of per-user records. Remote changes never overwrite unsynced local edits; local edits are pushed afterwards. */
+function makeSync(sb,uid,getS,applyRemote,getSettings,setSettings,store){
+ const sk='lifelyn-sync-'+uid;let snap=new Map(),since=null,prof=null,running=false;
+ const st=store||{get:k=>{try{return localStorage.getItem(k)}catch(e){return null}},set:(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}}};
+ try{const j=JSON.parse(st.get(sk)||'null');if(j){snap=new Map(j.snap);since=j.since||null;prof=j.prof||null}}catch(e){}
+ if(!snap.has('alloc:main'))snap.set('alloc:main',JSON.stringify(DEF_ALLOC));
+ const save=()=>st.set(sk,JSON.stringify({snap:[...snap],since,prof}));
+ const flat=()=>{const S=getS(),m=new Map();COLL.forEach(k=>(S[k]||[]).forEach(x=>m.set(k+':'+x.id,{kind:k,id:String(x.id),data:x})));m.set('alloc:main',{kind:'alloc',id:'main',data:S.alloc||{}});return m};
+ async function pull(){for(let g=0;g<40;g++){let q=sb.from('lifelyn_records').select('kind,id,data,deleted,updated_at').order('updated_at',{ascending:true}).limit(500);if(since)q=q.gte('updated_at',since);
+   const r=await q;if(r.error)throw r.error;const rows=r.data||[];if(!rows.length)return;const cur=flat(),take=[];
+   for(const row of rows){const key=row.kind+':'+row.id,loc=cur.get(key),lj=loc?JSON.stringify(loc.data):undefined,sj=snap.get(key),rj=row.deleted?undefined:JSON.stringify(row.data);
+    if(lj!==sj)continue;if(rj===lj){continue}take.push(row);if(rj===undefined)snap.delete(key);else snap.set(key,rj)}
+   if(take.length)applyRemote(take);const last=rows[rows.length-1].updated_at;const stuck=last===since&&rows.length>=500;since=last;if(rows.length<500||stuck)return}}
+ async function push(){const cur=flat(),ups=[];for(const [k,v] of cur){const j=JSON.stringify(v.data);if(snap.get(k)!==j)ups.push({k,j,row:{user_id:uid,kind:v.kind,id:v.id,data:v.data,deleted:false}})}
+  for(const k of [...snap.keys()])if(!cur.has(k)){const i=k.indexOf(':');ups.push({k,j:undefined,row:{user_id:uid,kind:k.slice(0,i),id:k.slice(i+1),data:{},deleted:true}})}
+  for(let i=0;i<ups.length;i+=200){const ch=ups.slice(i,i+200);const r=await sb.from('lifelyn_records').upsert(ch.map(x=>x.row),{onConflict:'user_id,kind,id'});if(r.error)throw r.error;ch.forEach(x=>{if(x.j===undefined)snap.delete(x.k);else snap.set(x.k,x.j)})}return ups.length}
+ async function pullProfile(){const r=await sb.from('lifelyn_profiles').select('display_name,currency,week_start,theme,timezone,prefs').eq('id',uid).maybeSingle();if(r.error)throw r.error;if(!r.data)return;
+  const loc=JSON.stringify(profileOf(getSettings())),rem=canonProfile(r.data),rj=JSON.stringify(rem);if(prof===null||loc===prof){if(rj!==loc)setSettings(settingsOf(rem));prof=rj}}
+ async function pushProfile(){const loc=profileOf(getSettings()),lj=JSON.stringify(loc);if(lj===prof)return false;const r=await sb.from('lifelyn_profiles').upsert({id:uid,...loc},{onConflict:'id'});if(r.error)throw r.error;prof=lj;return true}
+ async function sync(){if(running)return;running=true;try{await pullProfile();await pull();await push();await pushProfile();save()}finally{running=false}}
+ return {sync,pull,push,snap:()=>snap,flat};}
+
+/* ---------- sign-in screens ---------- */
+function AuthShell({children}){return html`<div style=${{minHeight:'100vh',display:'grid',placeItems:'center',padding:'24px max(16px,env(safe-area-inset-left,0px))'}}><div style=${{width:'100%',maxWidth:420}} className="stack">
+ <div className="brand" style=${{justifyContent:'center'}}><span className="mark"><${Ic} n="spark" s=${18}/></span><span>Lifelyn</span></div>${children}</div></div>`}
+function AuthScreen({onDemo}){
+ const [tab,setTab]=useState('in'),[email,setEmail]=useState(''),[pw,setPw]=useState(''),[name,setName]=useState(''),[busy,setBusy]=useState(false),[msg,setMsg]=useState(null);
+ const nice=e=>{const m=(e&&e.message)||'Something went wrong.';return /invalid login/i.test(m)?'That email and password do not match. Check them, or reset your password.':/not confirmed/i.test(m)?'Confirm your email first. Check your inbox for the link.':/rate limit|too many|seconds/i.test(m)?'Too many attempts. Wait a minute and try again.':/fetch|network|failed to/i.test(m)?'Could not reach the server. Check your connection.':m};
+ const go=async e=>{e.preventDefault();setMsg(null);if(!/^\S+@\S+\.\S+$/.test(email.trim())){setMsg({e:1,t:'Enter a valid email address.'});return}
+  if(tab!=='reset'&&pw.length<8){setMsg({e:1,t:'Use a password of at least 8 characters.'});return}setBusy(true);
+  try{if(tab==='in'){const r=await SB.auth.signInWithPassword({email:email.trim(),password:pw});if(r.error)throw r.error}
+   else if(tab==='up'){const r=await SB.auth.signUp({email:email.trim(),password:pw,options:{data:{display_name:name.trim()},emailRedirectTo:location.origin+location.pathname}});if(r.error)throw r.error;if(!r.data.session)setMsg({t:'Almost there. Open the confirmation link we emailed you, then sign in.'})}
+   else{const r=await SB.auth.resetPasswordForEmail(email.trim(),{redirectTo:location.origin+location.pathname});if(r.error)throw r.error;setMsg({t:'If that email has an account, a reset link is on its way. Open it on this device.'})}}
+  catch(x){setMsg({e:1,t:nice(x)})}setBusy(false)};
+ return html`<${AuthShell}><div className="card stack"><div role="tablist" className="tabs">${[['in','Sign in'],['up','Create account'],['reset','Forgot password']].map(v=>html`<button key=${v[0]} role="tab" className="tab" aria-selected=${tab===v[0]} onClick=${()=>{setTab(v[0]);setMsg(null)}}>${v[1]}</button>`)}</div>
+  <form className="stack" onSubmit=${go}>${tab==='up'?html`<div className="field"><label htmlFor="au-name">First name</label><input id="au-name" className="in" autoComplete="given-name" value=${name} onChange=${e=>setName(e.target.value)}/></div>`:null}
+   <div className="field"><label htmlFor="au-email">Email</label><input id="au-email" className="in" type="email" autoComplete="email" inputMode="email" required value=${email} onChange=${e=>setEmail(e.target.value)}/></div>
+   ${tab!=='reset'?html`<div className="field"><label htmlFor="au-pw">Password</label><input id="au-pw" className="in" type="password" autoComplete=${tab==='up'?'new-password':'current-password'} required value=${pw} onChange=${e=>setPw(e.target.value)}/>${tab==='up'?html`<span className="cap muted">At least 8 characters.</span>`:null}</div>`:null}
+   ${msg?html`<div className=${'note'} role=${msg.e?'alert':'status'} style=${msg.e?{background:'var(--err-soft)',color:'var(--err)'}:{background:'var(--ok-soft)',color:'var(--ok)'}}>${msg.t}</div>`:null}
+   <button className="btn pri" type="submit" disabled=${busy}>${busy?'Please wait…':tab==='in'?'Sign in':tab==='up'?'Create account':'Send reset link'}</button></form></div>
+  <button className="btn" onClick=${onDemo}>Try the demo with sample data</button><p className="cap muted" style=${{textAlign:'center'}}>Demo data stays on this device and is not saved to an account.</p><//>`}
+function NewPassword({done}){
+ const [a,setA]=useState(''),[b,setB]=useState(''),[busy,setBusy]=useState(false),[err,setErr]=useState('');
+ const go=async e=>{e.preventDefault();setErr('');if(a.length<8){setErr('Use a password of at least 8 characters.');return}if(a!==b){setErr('The two passwords do not match.');return}setBusy(true);
+  try{const r=await SB.auth.updateUser({password:a});if(r.error)throw r.error;done()}catch(x){setErr((x&&x.message)||'Could not update the password. Request a new reset link.')}setBusy(false)};
+ return html`<${AuthShell}><form className="card stack" onSubmit=${go}><h1 className="disp">Choose a new password</h1><div className="field"><label htmlFor="np1">New password</label><input id="np1" className="in" type="password" autoComplete="new-password" value=${a} onChange=${e=>setA(e.target.value)}/></div>
+  <div className="field"><label htmlFor="np2">Repeat it</label><input id="np2" className="in" type="password" autoComplete="new-password" value=${b} onChange=${e=>setB(e.target.value)}/></div>
+  ${err?html`<div className="note" role="alert" style=${{background:'var(--err-soft)',color:'var(--err)'}}>${err}</div>`:null}<button className="btn pri" type="submit" disabled=${busy}>${busy?'Saving…':'Save password'}</button></form><//>`}
+function Root(){
+ const cfg=useMemo(getCfg,[]);const [st,setSt]=useState(cfg?{mode:'loading'}:{mode:'local'});
+ useEffect(()=>{if(!cfg)return;let sub=null,dead=false;loadScript(SBJS).then(()=>{if(dead)return;SB=window.supabase.createClient(cfg.url,cfg.key,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+  const r=SB.auth.onAuthStateChange((ev,session)=>{if(/access_token|error_description/.test(location.hash)){try{history.replaceState(null,'',location.pathname+location.search)}catch(e){}}
+   if(ev==='PASSWORD_RECOVERY'){UID=session?session.user.id:null;setSt({mode:'recovery'});return}
+   if(session){UID=session.user.id;const u={id:session.user.id,email:session.user.email,name:(session.user.user_metadata||{}).display_name||''};setSt(p=>p.mode==='recovery'||(p.mode==='in'&&p.user.id===u.id)?p:{mode:'in',user:u})}
+   else{UID=null;setSt(p=>p.mode==='demo'?p:{mode:'out'})}});sub=r.data.subscription}).catch(()=>{if(!dead)setSt({mode:'error'})});return()=>{dead=true;if(sub)sub.unsubscribe()}},[]);
+ if(st.mode==='loading')return html`<${AuthShell}><div className="card empty"><div className="disp">Loading…</div><div className="small">Connecting to your account.</div></div><//>`;
+ if(st.mode==='error')return html`<${AuthShell}><div className="card stack"><h2>Can't reach sign-in</h2><p className="small muted">The sign-in service didn't load. Check your connection. If you are viewing this inside the Claude preview, outside services are blocked there.</p><button className="btn pri" onClick=${()=>location.reload()}>Try again</button><button className="btn" onClick=${()=>setSt({mode:'local'})}>Use on this device only</button></div><//>`;
+ if(st.mode==='out')return html`<${AuthScreen} onDemo=${()=>setSt({mode:'demo'})}/>`;
+ if(st.mode==='recovery')return html`<${NewPassword} done=${async()=>{const r=await SB.auth.getSession();const s=r.data.session;if(s)setSt({mode:'in',user:{id:s.user.id,email:s.user.email,name:''}});else setSt({mode:'out'})}}/>`;
+ if(st.mode==='in')return html`<${App} key=${st.user.id} owner=${st.user.id} auth=${st}/>`;
+ if(st.mode==='demo')return html`<${App} key="demo" owner="demo" auth=${{mode:'demo',exit:()=>setSt({mode:'out'})}}/>`;
+ return html`<${App} key="local" owner="local" auth=${{mode:'local'}}/>`}
+function AccountCard({S,A,U}){
+ const au=U.auth,cfg=getCfg();const [url,setUrl]=useState(''),[key,setKey]=useState(''),[err,setErr]=useState(''),[conf,setConf]=useState(false);
+ const lab={ok:'Synced',saving:'Saving…',loading:'Loading your data…',offline:'Offline. Will retry.',error:'Sync problem',off:''}[U.sync.state];
+ const save=e=>{e.preventDefault();const c={url:url.trim(),key:key.trim()};if(jwtRole(c.key)==='service_role'||/^sb_secret_/.test(c.key)){setErr('That is a secret key. It must never go in a web app. Use the publishable (anon) key.');return}
+  if(!cfgOk(c)){setErr('Enter the project URL (https://xxxx.supabase.co) and the anon key from Project Settings, API.');return}try{localStorage.setItem('lifelyn-cfg',JSON.stringify(c));location.reload()}catch(x){setErr('This browser blocked saving the settings.')}};
+ if(au.mode==='in')return html`<div className="card stack"><h2>Account</h2><div className="small"><b>${au.user.email}</b></div><div className="rowf small"><span className=${'pill '+(U.sync.state==='ok'?'ok':U.sync.state==='error'?'err':'warn')}>${lab}</span>${U.sync.at?html`<span className="muted">Last synced ${new Date(U.sync.at).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})}</span>`:null}</div>
+  ${U.sync.state==='error'&&U.sync.msg?html`<div className="note" role="alert">${U.sync.msg}</div>`:null}
+  <p className="small muted">Your data is saved to your account and syncs across devices where you sign in. Documents are stored privately in your account's file storage.</p>
+  <div className="rowf"><button className="btn" onClick=${()=>U.retry&&U.retry()}>Sync now</button><button className="btn" onClick=${U.signOut}>Sign out</button><button className="btn" onClick=${A.importLocal}>Import data from this device</button></div>
+  <div className="rowf">${!conf?html`<button className="btn danger" onClick=${()=>setConf(true)}>Erase my cloud data</button>`:html`<button className="btn danger" onClick=${()=>{A.eraseCloud();setConf(false)}}>Yes, erase everything</button><button className="btn" onClick=${()=>setConf(false)}>Keep it</button>`}</div>
+  <p className="cap muted">Deleting the account itself needs a server function that comes in a later milestone. Erasing clears your records and files.</p></div>`;
+ if(cfg)return html`<div className="card stack"><h2>Account</h2><p className="small muted">${au.mode==='demo'?'You are in demo mode. Nothing here is saved to an account.':'Connected to your Supabase project, not signed in.'}</p>${au.exit?html`<div><button className="btn pri" onClick=${au.exit}>Sign in or create account</button></div>`:null}${cfg&&!window.LIFELYN_CONFIG?html`<div><button className="btn sm" onClick=${()=>{try{localStorage.removeItem('lifelyn-cfg')}catch(e){}location.reload()}}>Disconnect Supabase</button></div>`:null}</div>`;
+ return html`<form className="card stack" onSubmit=${save}><h2>Connect your cloud account</h2><p className="small muted">Accounts, sync and file storage run on your own Supabase project. Without one, the app saves on this device only. Follow SETUP.md, then paste the project URL and the anon (public) key here. Never paste a service_role key.</p>
+  <div className="field"><label htmlFor="cfg-url">Project URL</label><input id="cfg-url" className="in" inputMode="url" placeholder="https://abcd1234.supabase.co" value=${url} onChange=${e=>setUrl(e.target.value)}/></div>
+  <div className="field"><label htmlFor="cfg-key">Anon (public) key</label><input id="cfg-key" className="in" autoComplete="off" value=${key} onChange=${e=>setKey(e.target.value)}/></div>
+  ${err?html`<div className="note" role="alert" style=${{background:'var(--err-soft)',color:'var(--err)'}}>${err}</div>`:null}<div><button className="btn pri" type="submit">Save and connect</button></div></form>`}
+
 /* ---------- App shell ---------- */
 const NAV=[['home','Home','home','Today'],['assistant','Assistant','spark','Today'],['planner','Planner','cal','Plan'],['projects','Projects','folder','Plan'],['goals','Goals','target','Plan'],['reminders','Reminders','bell','Plan'],['budget','Budget','wallet','Money and travel'],['travel','Travel','plane','Money and travel'],['explore','Explore','compass','Money and travel'],['documents','Documents','file','Library'],['prefs','Settings','gear','You']];
 const TITLES={home:'Home',assistant:'Assistant',planner:'Planner',projects:'Projects',goals:'Goals and habits',reminders:'Reminders',budget:'Budget',travel:'Travel',explore:'Explore',documents:'Documents',prefs:'Settings'};
 const getRoute=()=>{const h=(location.hash||'').slice(1);return NAV.some(n=>n[0]===h)?h:'home'};
 
-function App(){
- const [S,setS]=useState(load);const [route,setRoute]=useState(getRoute);const [sheet,setSheet]=useState(null);const [toast,setToast]=useState(null);
+function App({owner,auth}){
+ const [S,setS]=useState(()=>{const s=load(owner);return (!s.settings.name&&auth.user&&auth.user.name)?{...s,settings:{...s.settings,name:auth.user.name}}:s});const Sref=useRef(S);Sref.current=S;const [route,setRoute]=useState(getRoute);const [sheet,setSheet]=useState(null);const [toast,setToast]=useState(null);
  const [seedQ,setSeedQ]=useState('');const [sel,setSel]=useState(null);const [selP,setSelP]=useState(null);const tt=useRef();
- useEffect(()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}},[S]);
+ useEffect(()=>{try{localStorage.setItem(keyFor(owner),JSON.stringify(S))}catch(e){}},[S]);
  useEffect(()=>{const r=document.documentElement;if(S.settings.theme==='system')r.removeAttribute('data-theme');else r.setAttribute('data-theme',S.settings.theme)},[S.settings.theme]);
  useEffect(()=>{const h=()=>setRoute(getRoute());window.addEventListener('hashchange',h);return()=>window.removeEventListener('hashchange',h)},[]);
  const say=(msg,undo)=>{setToast({msg,undo});clearTimeout(tt.current);tt.current=setTimeout(()=>setToast(null),6000)};
@@ -881,12 +981,29 @@ function App(){
   deleteHabit:id=>upd(s=>({...s,habits:s.habits.filter(h=>h.id!==id),reminders:s.reminders.filter(r=>r.habit!==id)})),
   addDoc:d=>upd(s=>({...s,docs:[...s.docs,d]})),
   updDoc:(id,p)=>upd(s=>({...s,docs:s.docs.map(d=>d.id===id?{...d,...p}:d)})),
-  deleteDoc:id=>{fdel(id).catch(()=>{});upd(s=>({...s,docs:s.docs.filter(d=>d.id!==id)}));say('Document deleted')},
+  deleteDoc:id=>{fdel(id).catch(()=>{});if(SB&&UID)remoteRemove(id).catch(()=>{});upd(s=>({...s,docs:s.docs.filter(d=>d.id!==id)}));say('Document deleted')},
+  importLocal:()=>{try{const r=localStorage.getItem('lifelyn-demo-v1');const o=r?JSON.parse(r):null;if(!o||o.v!==1){say('There is no data on this device to import');return}const x=ext(o);let n=0;
+   upd(s=>{const m={...s};COLL.forEach(k=>{const have=new Set((s[k]||[]).map(i=>String(i.id)));const add=(x[k]||[]).filter(i=>!have.has(String(i.id)));n+=add.length;m[k]=[...(s[k]||[]),...add]});return m});say(n?'Imported '+n+' items from this device':'Nothing new to import')}catch(e){say('Could not read data on this device')}},
+  eraseCloud:()=>{const ids=Sref.current.docs.map(d=>d.id);if(SB&&UID&&ids.length)SB.storage.from('lifelyn-documents').remove(ids.map(i=>UID+'/'+i)).catch(()=>{});fclear();
+   setS(s=>({...s,tasks:[],expenses:[],reminders:[],trips:[],projects:[],goals:[],habits:[],docs:[],places:[],alloc:{...DEF_ALLOC}}));say('Your data was erased. It will be removed from the cloud on the next sync.')},
   savePlace:p=>upd(s=>s.places.some(x=>x.id===p.id)?s:{...s,places:[...s.places,p]}),
   updPlace:(id,p)=>upd(s=>({...s,places:s.places.map(x=>x.id===id?{...x,...p}:x)})),
   deletePlace:id=>upd(s=>({...s,places:s.places.filter(x=>x.id!==id)})),
-  reset:withSample=>{const f=seed();setS(withSample?f:{...f,tasks:[],expenses:[],reminders:[],trips:[],projects:[],goals:[],habits:[],docs:[],places:[],alloc:{Flights:0,Stay:0,Transport:0,Food:0,'Gifts & shopping':0,Outfits:0,Other:0},chat:f.chat,settings:{...f.settings}})}};
- const U={go,open:(type,ctx)=>setSheet({type,ctx:ctx||{}}),toast:say};
+  reset:withSample=>{const f=seed();setS(withSample&&auth.mode!=='in'?f:{...f,tasks:[],expenses:[],reminders:[],trips:[],projects:[],goals:[],habits:[],docs:[],places:[],alloc:{Flights:0,Stay:0,Transport:0,Food:0,'Gifts & shopping':0,Outfits:0,Other:0},chat:f.chat,settings:{...f.settings}})}};
+
+ const [sy,setSy]=useState({state:auth.mode==='in'?'loading':'off',at:null,msg:''});const eng=useRef(null),runRef=useRef(()=>{});const sk=useRef(0);
+ const settingsRef=useRef();settingsRef.current=S.settings;
+ useEffect(()=>{if(auth.mode!=='in'||!SB)return;let dead=false;
+  const applyRemote=rows=>{Sref.current=applyRows(Sref.current,rows);setS(s=>applyRows(s,rows))};
+  const e=makeSync(SB,owner,()=>Sref.current,applyRemote,()=>settingsRef.current,p=>{Sref.current={...Sref.current,settings:{...Sref.current.settings,...p}};setS(s=>({...s,settings:{...s.settings,...p}}))});eng.current=e;
+  const uploadPending=async()=>{for(const d of Sref.current.docs){if(d.remote)continue;const b=await fgetLocal(d.id).catch(()=>null);if(!b)continue;await remoteUpload(d.id,b);A.updDoc(d.id,{remote:true})}};
+  const run=async()=>{if(dead)return;if(!navigator.onLine){setSy(p=>({...p,state:'offline'}));return}setSy(p=>({...p,state:p.at?'saving':'loading'}));
+   try{await e.sync();await uploadPending();if(!dead)setSy({state:'ok',at:Date.now(),msg:''})}catch(x){if(dead)return;const m=(x&&x.message)||String(x);setSy(p=>({...p,state:/fetch|network|failed to|load failed/i.test(m)?'offline':'error',msg:/relation .* does not exist|schema cache/i.test(m)?'The database tables are missing. Run the SQL in SETUP.md.':m}))}};
+  runRef.current=run;run();const iv=setInterval(run,30000);const vis=()=>{if(document.visibilityState==='visible')run()};document.addEventListener('visibilitychange',vis);window.addEventListener('online',run);
+  return()=>{dead=true;clearInterval(iv);document.removeEventListener('visibilitychange',vis);window.removeEventListener('online',run)}},[owner]);
+ useEffect(()=>{if(auth.mode!=='in')return;const t=setTimeout(()=>runRef.current(),1200);return()=>clearTimeout(t)},[S]);
+ const signOut=async()=>{try{if(eng.current&&navigator.onLine)await eng.current.sync()}catch(e){}try{localStorage.removeItem(keyFor(owner));localStorage.removeItem('lifelyn-sync-'+owner)}catch(e){}await fclear();try{await SB.auth.signOut()}catch(e){}};
+ const U={go,open:(type,ctx)=>setSheet({type,ctx:ctx||{}}),toast:say,auth,sync:sy,retry:()=>runRef.current(),signOut};
  const T=today();const bell=(S.settings.notif.reminders?S.reminders.filter(r=>!r.done&&r.date<=T).length:0);
  const cur=S.settings.currency,C=(sheet&&sheet.ctx)||{};
  const close=()=>setSheet(null);
@@ -920,13 +1037,13 @@ function App(){
   <nav className="side" aria-label="Main"><div className="brand"><span className="mark"><${Ic} n="spark" s=${18}/></span><span>Lifelyn</span></div>
    ${groups.map(g=>html`<${React.Fragment} key=${g}><div className="grp">${g}</div>${NAV.filter(n=>n[3]===g).map(nb)}<//>`)}<div className="sp"></div></nav>
   <main className="main"><div className="wrap">
-   <header className="top"><div className="t">${route==='home'?html`<span className="faint small">Lifelyn · sample data, saved in this browser</span>`:html`<h1>${TITLES[route]}</h1>`}</div>
-    <div className="tools"><button className="ibtn" aria-label=${bell?bell+' reminders due':'Reminders'} onClick=${()=>go('reminders')} style=${{position:'relative'}}><${Ic} n="bell"/>${bell?html`<span className="badge" style=${{position:'absolute',top:-6,right:-6,margin:0,transform:'none'}}>${bell}</span>`:null}</button>
+   <header className="top"><div className="t">${route==='home'?html`<span className="faint small">${auth.mode==='in'?'Lifelyn · '+auth.user.email:auth.mode==='demo'?'Lifelyn · demo, sample data':'Lifelyn · saved in this browser'}</span>`:html`<h1>${TITLES[route]}</h1>`}</div>
+    <div className="tools">${auth.mode==='in'?html`<button className=${'pill '+(sy.state==='ok'?'ok':sy.state==='error'?'err':'warn')} onClick=${()=>go('prefs')} aria-label=${'Sync status: '+sy.state}>${{ok:'Synced',saving:'Saving…',loading:'Loading…',offline:'Offline',error:'Sync problem',off:''}[sy.state]}</button>`:auth.mode==='demo'?html`<button className="pill acc" onClick=${()=>go('prefs')}>Demo</button>`:null}<button className="ibtn" aria-label=${bell?bell+' reminders due':'Reminders'} onClick=${()=>go('reminders')} style=${{position:'relative'}}><${Ic} n="bell"/>${bell?html`<span className="badge" style=${{position:'absolute',top:-6,right:-6,margin:0,transform:'none'}}>${bell}</span>`:null}</button>
      <button className="ibtn" aria-label="Open menu" onClick=${()=>U.open('menu')}><${Ic} n="menu"/></button></div></header>
    ${screen}</div></main>
   <nav className="bottom" aria-label="Main">${tabs.map(id=>nb(NAV.find(n=>n[0]===id)))}</nav>
   ${sh}${toast?html`<div className="toast" role="status"><span>${toast.msg}</span>${toast.undo?html`<button onClick=${()=>{toast.undo();setToast(null)}}>Undo</button>`:null}</div>`:null}</div>`}
-ReactDOM.createRoot(document.getElementById('root')).render(html`<${App}/>`);
+ReactDOM.createRoot(document.getElementById('root')).render(html`<${Root}/>`);
 
 </script>
 </body>
